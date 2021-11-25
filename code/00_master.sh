@@ -5,7 +5,7 @@
 # in: bash 00_master.sh
 # out: data/*-{par,pri,est,err,ext,nam}.txt ; data/fileList.txt ; raw/{customPrior,knownParam}.csv ; result/parDeduced.csv
 # arg: 0
-# date: 20211007,20211012,20211113 (fuse abcrLVC.sh)
+# date: 20211007,20211012,20211113 (fuse abcrLVC.sh),20211125
 
 ##### workbench prep #####
 p0=`pwd`;p1=`dirname $0`
@@ -55,7 +55,6 @@ while read -r lIne;do
 	## cluster run ABCR pipeline if needed
 	if [[ $(( `wc -l < ../data/${nAm}-pri.csv` -1 )) -gt `grep -e ${nAm} ../result/parDeduced.csv | wc -l` ]];then
 		echo -e "`date` >> ${nAm}"
-		#Rscript logData.r ${nAm}.csv
 		if [[ ${OSTYPE} == "linux-gnu" ]];then ## identify OS environment
 			./slurm_submit.peta4-skylake_julia ${nAm} & # SLURM submission
 			#julia abcrLVC.jl ${nAm} 1> ../data/${nAm}-est.txt 2> ../data/${nAm}-err.txt & # /dev/null
@@ -82,19 +81,13 @@ done
 ##### result restructure #####
 cd ../data
 ls *-est.txt > fileList-t.txt
-while [[ `wc -l < fileList-t.txt` -gt 0 ]];do ### !!!
-	while read -r lIne;do
-		if [[ `wc -l < ${lIne}` -gt 5 ]];then # first 5 rows are standard output from julia-ApproxBayes
-			dAte=`date | cut -f 2,3,6 -d " "`
-			nAm=`echo -e "${lIne}" | cut -f 1 -d "-"` # | rev | cut -f 1 -d "/" | rev`
-			grep -e "^Parameter " ${nAm}-est.txt | cut -f 2 -d ":" | tr -d " \|)" | sed -e "s/(/,/g" > ${nAm}-ext.txt # cut -f 2 -d ":" | cut -f 1 -d "(" | tr -d " ""))"
-			tail -n +2 ${nAm}-pri.csv | cut -f 1,2 -d "," | sed -e "s/^/${dAte},${nAm},/" > ${nAm}-nam.txt
-			paste ${nAm}-nam.txt ${nAm}-ext.txt | sed -e "s/\t/,/" >> ../result/parDeduced.csv
-			rm ${nAm}-{ext,nam}.txt
-			grep -v ${lIne} fileList-t.txt > fileList-m.txt
-		fi
-	done < fileList-t.txt
-	[[ -f fileList-m.txt ]] && mv fileList-m.txt fileList-t.txt
-done
+while read -r lIne;do
+	dAte=`date | cut -f 2,3,6 -d " "`
+	nAm=`echo -e "${lIne}" | cut -f 1 -d "-"` # | rev | cut -f 1 -d "/" | rev`
+	grep -e "^Parameter " ${nAm}-est.txt | cut -f 2 -d ":" | tr -d " \|)" | sed -e "s/(/,/g" > ${nAm}-ext.txt # cut -f 2 -d ":" | cut -f 1 -d "(" | tr -d " ""))"
+	tail -n +2 ${nAm}-pri.csv | cut -f 1,2 -d "," | sed -e "s/^/${dAte},${nAm},/" > ${nAm}-nam.txt
+	paste ${nAm}-nam.txt ${nAm}-ext.txt | sed -e "s/\t/,/" >> ../result/parDeduced.csv
+	rm ${nAm}-{ext,nam}.txt
+done < fileList-t.txt
 #rm `ls | grep -e "\.txt$\|\.csv$" | grep -v "\-out"`
 exit
