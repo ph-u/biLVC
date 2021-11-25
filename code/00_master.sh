@@ -8,6 +8,8 @@
 # date: 20211007,20211012,20211113 (fuse abcrLVC.sh),20211125
 
 ##### workbench prep #####
+mSg=`grep -e "^# desc: " $0 | cut -f 2 -d ":"`
+echo -e "`date`: start${mSg}"
 p0=`pwd`;p1=`dirname $0`
 rEal=`echo -e "${p0}/${p1}" | sed -e "s/\/.$//"` #`realpath $0`
 cd ${rEal} #`dirname ${rEal}`
@@ -91,4 +93,5 @@ while read -r lIne;do
 	mv tmp ${nAm}-err.txt
 done < fileList.txt
 #rm `ls | grep -e "\.txt$\|\.csv$" | grep -v "\-out"`
+echo -e "`date`: done${mSg}"
 exit
