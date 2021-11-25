@@ -84,7 +84,7 @@ done
 cd ../data
 while read -r lIne;do
 	dAte=`date | cut -f 2,3,6 -d " "`
-	nAm=`echo -e "${lIne}" | cut -f 1 -d "."` | rev | cut -f 1 -d "/" | rev`
+	nAm=`echo -e "${lIne}" | rev | cut -f 2 -d "." | cut -f 1 -d "/" | rev`
 	grep -e "^Parameter " ${nAm}-est.txt | cut -f 2 -d ":" | tr -d " \|)" | sed -e "s/(/,/g" > ${nAm}-ext.txt # cut -f 2 -d ":" | cut -f 1 -d "(" | tr -d " ""))"
 	tail -n +2 ${nAm}-pri.csv | cut -f 1,2 -d "," | sed -e "s/^/${dAte},${nAm},/" > ${nAm}-nam.txt
 	paste ${nAm}-nam.txt ${nAm}-ext.txt | sed -e "s/\t/,/" >> ../result/parDeduced.csv
