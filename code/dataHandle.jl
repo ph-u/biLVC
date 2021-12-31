@@ -5,11 +5,11 @@
 # in: jl-script `include("dataHandle.jl")`
 # out: none
 # arg: 0
-# date: 20210624, 20210809, 20211101
+# date: 20210624
 
-using DataFrames, Distributions, StatsBase
+using DataFrames, Distributions, StatsBase, Statistics
 
-##### random numbers from indicated distribution #####
+##### random numbers from indicated distribution ##### 20210624, 20210809
 function cDistrib(x)
 	if x[5] == "Uniform" # low, up
 		return Uniform(x[6],x[7])
@@ -32,16 +32,43 @@ function cDistrib(x)
 	end
 end
 
-##### check proportion of simulation within time-stamped data range #####
-function matchRatio(sIm::DataFrame, rAw::DataFrame)
-	if sum(Array(sIm)) == 0;return 1;end # skip failed simulations
-	pcMatch = 0
-	for i in 1:nrow(sIm)
-		t0 = rAw[findall(x -> in(x,sIm[i,1]), rAw[:,1]),:]
-		for j in 2:ncol(t0)
-			t1 = extrema(t0[:,j]) # quantile(t0[:,j], [.05,.95])
-			pcMatch += t1[1] <= sIm[i,j] <= t1[2]
-		end
+##### simulated value match ##### 20211228
+## linear match ratio drop away from data range
+function simMatch(sIm, dAta::Vector)
+	x = extrema(dAta)
+	if (x[1]<=sIm<=x[2])
+		return 1
+	elseif ((x[1]-1)<=sIm<=(x[2]+1))
+		d = ifelse(sIm<x[1],x[1],x[2])
+		return abs(sIm-d)
+	else
+		return -1
+#		return max(1-abs(sIm/d-1),0) ## match range = [0,1]
 	end
-	return 1-pcMatch/(nrow(sIm)*(ncol(sIm)-1))
 end
+
+##### time-series match ##### 20211229
+function tsMatch(tS::DataFrame, dAta::DataFrame)
+	tIme = sort(unique(dAta[:,1])) ## data timeline
+	if (nrow(tS) < length(tIme));return 0;end
+	mAtch = 0 ## match ratio collection
+	for i0 in 2:length(tIme)
+		q1 = v(tS[findall(tS[:,1] .== tIme[i0]),2:ncol(tS)])
+		q2 = dAta[findall(dAta[:,1] .== tIme[i0]),2:ncol(dAta)]
+		for i1 in eachindex(q1)
+			mAtch += simMatch(q1[i1],q2[:,i1])
+		end;end
+	return mAtch/((length(tIme)-1)*(ncol(tS)-1))
+end
+
+##### extract dataframe using reference column by vector ##### 20211230
+function wHich(df::DataFrame, colNum::Int64, rEf::Vector)
+	q = []
+	for i in eachindex(rEf)
+		append!(q,findall(df[:,colNum] .== rEf[i]))
+	end
+	return df[sort(unique(q)),:]
+end
+
+##### vectorize DataFrame col/row ##### 20211230
+v = z -> vec(Array(z))
