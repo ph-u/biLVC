@@ -1,11 +1,11 @@
 #!/home/pmh65/bin/julia-1.6.3/bin/julia
 #! author: ph-u
-#! script: 0_analyze.jl
+#! script: analyze.jl
 #! desc: ABCnLVC main process
-#! in: julia 0_analyze.jl [time-series basename]
-#! out: [time-series basename]-{log,est}.csv
-#! arg: 1
-#! date: 20211226
+#! in: julia analyze.jl [time-series] [algorithm] [acceptance]
+#! out: [time-series]{-[acceptance]}-[algorithm].csv
+#! arg: 3
+#! date: 20220101
 
 #SBATCH -J abcnLVC-CPU
 #SBATCH -A WELCH-SL3-CPU
@@ -16,22 +16,29 @@
 #SBATCH --no-requeue
 #SBATCH -p skylake
 
-using CSV
-##include("abcrSIM.jl") #modify
-aCc, nAm = ARGS
+##### environment #####
+nAm,aLg,aCc = ARGS
 pAth = ifelse(Sys.islinux(), "/home/pmh65/rds/0_abcrPar/", "../")
 
-rawTS = CSV.read(pAth*"raw/"*nAm*".csv", DataFrame; header=1, types=Float64)
-#kNown = CSV.read(pAth*"data/"*nAm*"-par.csv", DataFrame; header=1, types=[String, String, Float64])
-#pRior = CSV.read(pAth*"data/"*nAm*"-pri.csv", DataFrame; header=1, types=[String, String, Float64, Float64, String, Float64, Float64])
+##### import #####
+using CSV
+include("monteCarlo.jl")
+q = CSV.read(pAth*"data/"*nAm*"-log.csv", DataFrame; header=1, types=Float64)
+p = CSV.read(pAth*"data/"*nAm*"-pri.csv", DataFrame; header=1, types=[String, String, Float64, Float64, String, Float64, Float64])
 
-##### time-series log-transformation #####
-for i=1:nrow(rawTS), j=2:ncol(rawTS)
-	rawTS[i,j] = log(rawTS[i,j]+1)
+##### Approximate Bayesian Computing #####
+if (aLg=="mcmc")
+	q0 = ABCmcmc(q,p,parse(Float64,aCc))
+else
+	q0 = ABCr(q,p,parse(Float64,aCc))
 end
+CSV.write(pAth*"data/"*nAm*aCc*"-"*aLg*".csv", q0)
 
-CSV.write(pAth*"data/"*nAm*"-log.csv", rawTS)
-
-##### initialize #####
-a0 = ifelse(aCc=="r", .95, .5) # rej / mcmc
-## MCMC: Metropolis–Hastings algorithm
+##### summary statistics #####
+s = DataFrame(id=String[], influencer=String[], min=Float64[], low95CI=Float64[], Q1=Float64[], Q2=Float64[], Q3=Float64[], high95CI=Float64[], max=Float64[])
+for i in 1:nrow(p)
+	q1 = quantile(q0[:,i], [.05,.25,.5,.75,.95])
+	q2 = extrema(q0[:,i])
+	push!(s,[p[i,1],p[i,2],q2[1],q1[1],q1[2],q1[3],q1[4],q1[5],q2[2]])
+end
+CSV.write(pAth*"result/"*nAm*aCc*"-"*aLg*".csv", s)

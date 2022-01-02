@@ -41,8 +41,10 @@ function ABCr(dAta::DataFrame, pRi::DataFrame, aCc=.5, mAxIt=1e5, sAmple=100)
 end
 
 ##### Markov Chain Monte Carlo (MCMC) ##### 20211231
+## MCMC: Metropolis–Hastings algorithm
 function ABCmcmc(dAta::DataFrame, pRi::DataFrame, aCc=.95, mAxIt=1e5, sAmple=100, cHain=4)
-	cHains = ABCr(dAta,pRi,.2,mAxIt,cHain) # chain start points
+	cHAins = ABCr(dAta,pRi,0.,mAxIt,sAmple) # chain start points
+	cHains = wHich(cHAins,ncol(cHAins),reverse(sort(cHAins[:,ncol(cHAins)]))[1:cHain])
 	pRiCP = deepcopy(pRi)
 	rEc = DataFrame(zeros(0,nrow(pRi)+2), :auto)
 	i, iTer, sTag, cH = 0, 0, 0, 1 # tags
