@@ -19,7 +19,7 @@
 argv=(commandArgs(T))
 library(FME) # FME(1.3.6.2), deSolve(1.30), rootSolve(1.8.2.3), coda(0.19.4)
 # doi: 10.18637/jss.v033.i03
-pT=ifelse(version$os=="linux-gnu","/home/pmh65/rds/0_abcrPar/","../")
+pT=ifelse(version$os=="linux-gnu","/home/pmh65/rds/00_biLVC/","../")
 source(paste0(pT,"code/src.r"))
 nM=argv[1]
 sT=read.csv(paste0(pT,"raw/",nM,".csv"), header=T)
@@ -57,6 +57,8 @@ write.csv(rEc, paste0(pT,"data/",argv[1],"-pri.csv"), quote=F, row.names=F)
 mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, lower=rEc[,"min"], upper=rEc[,"max"], niter=1e5, outputlength=1e2, updatecov=50, burninlength=0)
 
 ##### summary ##### 20220108
+dput(summary(mcMC), paste0(pT,"data/",argv[1],"-mcmcSum.txt"))
+
 pdf(paste0(pT,"result/",argv[1],"-sum.pdf"))
 plot(mcMC)
 invisible(dev.off())
@@ -65,9 +67,7 @@ pdf(paste0(pT,"result/",argv[1],"-hist.pdf"))
 hist(mcMC, breaks=20)
 invisible(dev.off())
 
-write.table(summary(mcMC), paste0(pT,"data/",argv[1],"-mcmcSum.txt"), quote=F, row.names=F, sep=",")
-
 pdf(paste0(pT,"result/",argv[1],"-cumu.pdf"))
-cumplot(as.mcmc(mcMC$pars))
+cumuplot(as.mcmc(mcMC$pars))
 invisible(dev.off())
 
