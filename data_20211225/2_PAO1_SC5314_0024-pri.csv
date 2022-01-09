@@ -1,0 +1,7 @@
+id,influencer,par1,par2,type,min,max
+PAO1,r,0,0,Uniform,-5,5
+PAO1,k,0,0,Uniform,5,25
+PAO1,SC5314,0,0,Uniform,-5,5
+SC5314,r,0,0,Uniform,-5,5
+SC5314,k,0,0,Uniform,5,25
+SC5314,PAO1,0,0,Uniform,-5,5
