@@ -19,7 +19,7 @@ ls ../raw/*.csv | grep -v "p_" | rev | cut -f 2 -d "." | cut -f 1 -d "/" | rev >
 while read -r L;do # get time-series data
 	p=`head -n 2 ../raw/${L}.csv | tail -n 1`
 	if [[ ${p} =~ ${nUm1} ]] && [[ ${p} =~ ${nUm2} ]];then # [[ ${p} =~ ${nUm} ]]
-		[[ -f ../data/${L}-est.txt ]] || echo -e ${L} >> ../data/fList.txt # list unprocessed time-series
+		[[ -f ../data/${L}-rec.txt ]] || echo -e ${L} >> ../data/fList.txt # list unprocessed time-series
 	fi
 done < ../data/tmp
 rm ../data/tmp
@@ -28,11 +28,11 @@ rm ../data/tmp
 while read -r L;do
 	echo -e "${L} (`date`)"
 	if [[ ${OSTYPE} == "linux-gnu" ]];then
-		sbatch bayesInfer.r ${L} 1> ../data/${L}-est.txt &
+		sbatch bayesInfer.r ${L} 1> ../data/${L}-rec.txt &
 	else
-		Rscript bayesInfer.r ${L} 1> ../data/${L}-est.txt
+		Rscript bayesInfer.r ${L} 1> ../data/${L}-rec.txt
 	fi
 done < ../data/fList.txt
-#rm ../data/fList.txt
+rm ../data/fList.txt
 echo -e "All queued - (`date`)"
 exit

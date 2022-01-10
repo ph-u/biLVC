@@ -57,7 +57,9 @@ write.csv(rEc, paste0(pT,"data/",argv[1],"-pri.csv"), quote=F, row.names=F)
 mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, lower=rEc[,"min"], upper=rEc[,"max"], niter=1e5, outputlength=1e2, updatecov=50, burninlength=0)
 
 ##### summary ##### 20220108
-dput(summary(mcMC), paste0(pT,"data/",argv[1],"-mcmcSum.txt"))
+save(mcMC, file=paste0(pT,"data/",argv[1],"-sam.RData"))
+write.csv(as.data.frame(mcMC$par), paste0(pT,"data/",argv[1],"-sam.csv"), quote=F, row.names=F)
+write.csv(summary(mcMC), paste0(pT,"result/",argv[1],"-est.csv"), quote=F, row.names=T)
 
 pdf(paste0(pT,"result/",argv[1],"-sum.pdf"))
 plot(mcMC)
