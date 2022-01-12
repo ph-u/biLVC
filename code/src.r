@@ -21,7 +21,7 @@ pAra = function(p, n){
 ##### Lotka-Volterra Competition (LVC) Model ##### 20220107
 LVc = function(t, x, pAr){with (as.list(c(x, pAra(pAr,length(x)))), {
 	iNt = 0
-	for(i in 1:length(x)){iNt = iNt + x * a[,i]}
+	for(i in 1:length(x)){iNt = iNt + x[i] * a[,i]}
 	return(list(r * x * (1 - iNt / k)))
 	})}
 
