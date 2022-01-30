@@ -17,7 +17,7 @@ p0 = p0[,which(pR[,2] != "r" & pR[,2] != "k")]
 pR = pR[which(pR[,2] != "r" & pR[,2] != "k"),]
 
 ##### single ecological relationship ##### 2022{0109,0111}
-tY = c("competition","mutualism","neutral","predator/parasite","prey/host","commensal","commensal_Host","harmed_by","harming_other")
+tY = c("competition","mutualism","neutral/no_interaction","predator/parasite_of_other","prey/host_of_other","commensal_of_other","commensal_Host_of_other","harmed_by_other","harming_other")
 sEr = function(i1,i2,cT=tY){ # + harm ; - help ; compare i1 (1->2) to i2 (2->1)
 	iT = ifelse(i1<0, ifelse(i2<0,tY[2], ifelse(i2>0,tY[5],tY[7])),
 	ifelse(i1>0, ifelse(i2>0,tY[1],ifelse(i2<0,tY[4],tY[9])),

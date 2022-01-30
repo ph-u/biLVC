@@ -7,9 +7,10 @@
 # arg: 1
 # date: 20220111
 
+[[ -z $1 ]] && grep -e "^\# desc\|^\# in" $0 | cut -f 2 -d ":" | sed -e "s/^ //" && exit
 pT=$1
 for i in `ls ${pT}/*-log.csv | rev | cut -f 2 -d "-" | cut -f 1 -d "/" | rev`;do
-	echo -e ${i}
+#	echo -e ${i}
 	Rscript interactionTypes.r ${pT}/ ${i} 2> /dev/null &
 	Rscript SimDataPlot.r ${pT}/ ${i}
 done
