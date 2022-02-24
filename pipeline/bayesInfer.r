@@ -20,12 +20,12 @@ argv=(commandArgs(T))
 library(FME) # FME(1.3.6.2), deSolve(1.30), rootSolve(1.8.2.3), coda(0.19.4)
 # doi: 10.18637/jss.v033.i03
 pT=ifelse(version$os=="linux-gnu","/home/pmh65/rds/00_biLVC/","../")
-source(paste0(pT,"code/src.r"))
+source(paste0(pT,"pipeline/src.r"))
 nM=argv[1]
 sT=read.csv(paste0(pT,"raw/",nM,".csv"), header=T)
 
 ##### log-transformation ##### 20220101
-sT[,-1] = log(sT[,-1])
+sT[,-1] = log(sT[,-1]+1)
 write.csv(sT,paste0(pT,"data/",nM,"-log.csv"), quote=F, row.names=F)
 
 ##### Rough priors ##### 20220101

@@ -14,7 +14,7 @@ cUt = c(range(z[,1]),as.numeric(argv[-1]))
 cUt = cUt[order(cUt)]
 for(i in 2:length(cUt)){
 	o = z[which(z[,1]>=cUt[i-1] & z[,1]<=cUt[i]),]
-#	if(min(o[,1])>0){o[,1] = o[,1]-min(o[,1])}
+	if(min(o[,1])>0){o[,1] = o[,1]-min(o[,1])}
 	s = paste0(paste0(rep(0,nchar(cUt[length(cUt)])-nchar(cUt[i-1])),collapse=""),cUt[i-1])
 	e = paste0(paste0(rep(0,nchar(cUt[length(cUt)])-nchar(cUt[i])),collapse=""),cUt[i])
 	write.csv(o,paste0("../raw/",nAm,"_",s,e,".csv"), quote=F, row.names=F)

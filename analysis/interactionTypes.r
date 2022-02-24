@@ -50,7 +50,7 @@ i0=1; for(i in 2:length(n)){for(j in 1:(length(n)-1)){if(i>j){
 			colnames(e) = c("interaction1","interaction2",rev(rev(colnames(w))[1:2]))
 			j0=1; for(i1 in 1:(length(b)-1)){for(j1 in 2:length(b)){if(i1<j1){
 				b0 = chisq.test(b[c(i1,j1)])
-				e[j0,] = c(tY[c(i1,j1)],b0$statistic,b0$p.value*nrow(e))
+				e[j0,] = c(names(b)[c(i1,j1)],b0$statistic,b0$p.value*nrow(e))
 				j0=j0+1}}}
 			write.csv(e, paste0(pT,"../result/",nAm,"-eco_",n[i],"_",n[j],".csv"), quote=F, row.names=F)
 	}}else{w[i0,(ncol(w)-1):ncol(w)] = rep(NA,2)};i0=i0+1}}}

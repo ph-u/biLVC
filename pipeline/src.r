@@ -65,8 +65,8 @@ rolRate = function(df,y,x){
 ## correlation coefficient
 		p = summary(lm(df0[,2]~df0[,1]))
 		p0 = as.data.frame(p$coefficients)
-		rEs[i-1,] = c(p0[2,"Estimate"],p0[2,"Estimate"]*(t[i]-t[i-1]), p$adj.r.squared) # standardise unit time
+		rEs[i-1,] = c(p0[2,"Estimate"],p0[2,"Estimate"]*(t[i]-t[i-1]), ifelse(is.na(p$adj.r.squared),0,p$adj.r.squared)) # standardise unit time
 	}
 	p1 = range(rEs[,-3])
-	return(c(rEs[which(rEs[,3]==max(rEs[,3])),1], p1+mean(p1)*c(-1,1)))
+	return(c(median(rEs[which(rEs[,3]==max(rEs[,3])),1]), p1+abs(mean(p1))*c(-1,1)))
 }
