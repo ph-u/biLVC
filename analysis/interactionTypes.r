@@ -2,26 +2,31 @@
 # author: ph-u
 # script: interactionTypes.r
 # desc: interaction types through time
-# in: p="path/2/data";for i in `ls ${p}/*-log.csv | cut -f 1 -d "-" | rev | cut -f 1 -d "/" | rev`;do Rscript interactionTypes.r ${p} ${i};done
+# in: p="path/2/data";for i in `ls ${p}/*-log.csv | cut -f 1 -d "-" | rev | cut -f 1 -d "/" | rev`;do Rscript interactionTypes.r ${p} ${i} `echo -e ${pT}${nAm}-pri.csv | rev | cut -f 1 -d "_" | rev | cut -f 1 -d "-"`;done
 # out: result/*-eco*.csv
-# arg: 2
+# arg: 3
 # date: 20220109
 
 argv=(commandArgs(T))
-pT = argv[1]
-nAm = argv[2]
+pT = argv[1]; nAm = argv[2]; tP=argv[3]
 p0 = read.csv(paste0(pT,nAm,"-sam.csv"), header=T, stringsAsFactors=F)
 pR = read.csv(paste0(pT,nAm,"-pri.csv"), header=T, stringsAsFactors=F)
 
 p0 = p0[,which(pR[,2] != "r" & pR[,2] != "k")]
 pR = pR[which(pR[,2] != "r" & pR[,2] != "k"),]
 
-##### single ecological relationship ##### 2022{0109,0111}
+##### single ecological relationship ##### 2022{0109,0111,0331}
 tY = c("competition","mutualism","neutral/no_interaction","predator/parasite_of_other","prey/host_of_other","commensal_of_other","commensal_Host_of_other","harmed_by_other","harming_other")
-sEr = function(i1,i2,cT=tY){ # + harm ; - help ; compare i1 (1->2) to i2 (2->1)
-	iT = ifelse(i1<0, ifelse(i2<0,tY[2], ifelse(i2>0,tY[5],tY[7])),
-	ifelse(i1>0, ifelse(i2>0,tY[1],ifelse(i2<0,tY[4],tY[9])),
-	ifelse(i2>0,tY[8],ifelse(i2<0,tY[6],tY[3]))))
+sEr = function(i1,i2,cT=tY,tYpe=tP){
+	if(tYpe=="LVC"){ # LVC: + harm ; - help ; compare i1 (1->2) to i2 (2->1)
+		iT = ifelse(i1<0, ifelse(i2<0,tY[2], ifelse(i2>0,tY[5],tY[7])),
+		ifelse(i1>0, ifelse(i2>0,tY[1],ifelse(i2<0,tY[4],tY[9])),
+		ifelse(i2>0,tY[8],ifelse(i2<0,tY[6],tY[3]))))
+	}else{ # gLV: - harm ; + help ; compare i1 (1->2) to i2 (2->1)
+		iT = ifelse(i1>0, ifelse(i2>0,tY[2], ifelse(i2<0,tY[5],tY[7])),
+		ifelse(i1<0, ifelse(i2<0,tY[1],ifelse(i2>0,tY[4],tY[9])),
+		ifelse(i2<0,tY[8],ifelse(i2>0,tY[6],tY[3]))))
+	}
 	return(iT)
 }
 

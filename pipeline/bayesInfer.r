@@ -1,13 +1,13 @@
 #!/bin/env Rscript
 # author: ph-u
 # script: bayesInfer.r
-# desc: Bayesian Inference on Lotka-Volterra Competition Model
-# in: Rscript bayesInfer.r [basename]
+# desc: Bayesian Inference on Lotka-Volterra Competition/generalized Model
+# in: Rscript bayesInfer.r [basename] [competition (c) / generalized (g)]
 # out: result/*.pdf, data/*.{csv,txt}
 # arg: 1
 # date: 20220107
 
-#SBATCH -J mcmcR-C
+#SBATCH -J mcmc-LV
 #SBATCH -A WELCH-SL3-CPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -21,20 +21,24 @@ library(FME) # FME(1.3.6.2), deSolve(1.30), rootSolve(1.8.2.3), coda(0.19.4)
 # doi: 10.18637/jss.v033.i03
 pT=ifelse(version$os=="linux-gnu","/home/pmh65/rds/00_biLVC/","../")
 source(paste0(pT,"pipeline/src.r"))
-nM=argv[1]
+nM=argv[1]; tP=argv[2]
 sT=read.csv(paste0(pT,"raw/",nM,".csv"), header=T)
 
-##### log-transformation ##### 20220101
-sT[,-1] = log(sT[,-1]+1)
+##### transformation ##### 20220101, 20220331 (+ % data type)
+if(all(sT[,-1]<=1)){sT[,-1] = sT[,-1] * 100}else{sT[,-1] = log(sT[,-1]+1)}
 write.csv(sT,paste0(pT,"data/",nM,"-log.csv"), quote=F, row.names=F)
 
-##### Rough priors ##### 20220101
+##### Rough priors ##### 20220101, 20220331 (+gLV parameter version)
 nSp = ncol(sT)-1
-rEc = as.data.frame(matrix(NA,nr=nSp*(nSp+2),nc=5))
+rEc = as.data.frame(matrix(NA,nr=nSp*(nSp+ifelse(tP=="c",2,1)),nc=5))
 colnames(rEc) = c("id","influencer","initial","min","max")
-rEc[,1] = rep(colnames(sT)[-1], each=nSp+2)
-rEc[,2] = rep(c("r","k",colnames(sT)[-1]),nSp)
-rEc = rEc[which(rEc[,1]!=rEc[,2]),] ## fix self-interaction =1
+rEc[,1] = rep(colnames(sT)[-1], each=nSp+ifelse(tP=="c",2,1))
+if(tP=="c"){
+	rEc[,2] = rep(c("r","k",colnames(sT)[-1]),nSp)
+	rEc = rEc[which(rEc[,1]!=rEc[,2]),] ## fix self-interaction =1
+}else{
+	rEc[,2] = rep(c("r",colnames(sT)[-1]),nSp)
+}
 for(i in 1:nrow(rEc)){
         if(rEc[i,2]=="r"){
                 rEc[i,3:ncol(rEc)] = rolRate(sT,rEc[i,1],1)
@@ -46,15 +50,15 @@ for(i in 1:nrow(rEc)){
         }
 }
 
-##### Fine parameter estimation ##### 20220108
-mcFIT = modFit(oBj,rEc[,3], sT, bestMet(rEc[,3], sT), method="Nelder-Mead")
+##### Fine parameter estimation ##### 20220108, 20220331 (+oDe option)
+mcFIT = modFit(oBj,rEc[,3], sT, tP, bestMet(rEc[,3], sT, tP), method="Nelder-Mead")
 rEc[,"initial"] = mcFIT$par
 rEc[,"min"] = ifelse(rEc[,"min"]>=mcFIT$par, mcFIT$par-abs(rEc[,"min"]), rEc[,"min"])
 rEc[,"max"] = ifelse(rEc[,"max"]<=mcFIT$par, mcFIT$par+abs(rEc[,"max"]), rEc[,"max"])
 write.csv(rEc, paste0(pT,"data/",argv[1],"-pri.csv"), quote=F, row.names=F)
 
-##### MCMC ##### 20220108
-mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, lower=rEc[,"min"], upper=rEc[,"max"], niter=1e5, outputlength=1e2, updatecov=50, burninlength=0)
+##### MCMC ##### 20220108, 20220331 (+oDe option)
+mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, oDe=tP, lower=rEc[,"min"], upper=rEc[,"max"], niter=1e5, outputlength=1e2, updatecov=50, burninlength=0)
 
 ##### summary ##### 20220108
 save(mcMC, file=paste0(pT,"data/",argv[1],"-sam.RData"))

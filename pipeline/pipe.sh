@@ -5,12 +5,12 @@
 #! in: bash pipe.sh
 #! out: (SEE bayesInfer.r)
 #! arg: 0
-#! date: 20220101, 20220108 (main pipeline)
+#! date: 20220101, 20220108 (main pipeline), 20220331 (+generalized Lotka-Volterra option)
 
 ##### set enviroment ##### 2022{0101,0103}
 nUm1='^[0-9]';nUm2='[0-9]$' #nUm='^[0-9]+*[0-9]+$' # line start & end with numbers
 p1=`pwd`;p2=`dirname $0`;p0=`echo -e "${p1}/${p2}"|sed -e "s/\.$//"`
-echo -e "BImcmc-LVC - (`date`)"
+echo -e "BImcmc-LV - (`date`)"
 
 ##### get time-series ##### 20220101
 cd ${p0}
@@ -24,15 +24,22 @@ while read -r L;do # get time-series data
 done < ../data/tmp
 rm ../data/tmp
 
-##### Data Analysis ##### 2022{0101,0104,0108}
+##### Data Analysis ##### 2022{0101,0104,0108,0331}
 while read -r L;do
-	echo -e "${L} (`date`)"
-	if [[ ${OSTYPE} == "linux-gnu" ]];then
-		sbatch bayesInfer.r ${L} 1> ../data/${L}-rec.txt &
+	if [[ `echo ${L} | rev | cut -f 1 -d "_" | rev` == "LVC" ]];then
+		tP="c";tP0="LVC"
 	else
-		Rscript bayesInfer.r ${L} 1> ../data/${L}-rec.txt
+		tP="g";tP0="gLV"
+	fi
+	echo -e "${L} analysed by ${tP0} (`date`)"
+	if [[ ${OSTYPE} == "linux-gnu" ]];then
+		sbatch bayesInfer.r ${L} ${tP} 1> ../data/${L}-rec.txt &
+	else
+		Rscript bayesInfer.r ${L} ${tP} 1> ../data/${L}-rec.txt
 	fi
 done < ../data/fList.txt
 rm ../data/fList.txt
 echo -e "All queued - (`date`)"
+##### sort program message after hpc done ##### 20220401
+# for i in `ls ../data/*-rec.txt`;do j=`head -n 1 ${i} | rev | cut -f 1 -d " " | rev`;j0=`echo ${i} | rev | cut -f 1 -d "/" | rev | cut -f 1 -d "-"`;cat slurm-${j}.out >> ../data/${j0}-rec.txt;done
 exit
