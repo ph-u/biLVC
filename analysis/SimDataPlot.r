@@ -2,19 +2,19 @@
 # author: ph-u
 # script: SimDataPlot.r
 # desc: estimated parameter changes through time
-# in: p="path/2/data";for i in `ls ${p}/*-log.csv | cut -f 1 -d "-" | rev | cut -f 1 -d "/" | rev`;do Rscript SimDataPlot.r ${p} ${i} `echo ${i} | rev | cut -f 1 -d "_" | rev`;done
+# in: Rscript SimDataPlot.r [path/to/data/] [data_basename] [math-model-type] [num_accepted_simulations]
 # out: result/*-{ts}.pdf
-# arg: 3
+# arg: 4
 # date: 20220109
 
 argv=(commandArgs(T))
 source("../pipeline/src.r")
 library(deSolve)
-pT = argv[1]
-nAm = argv[2]
+pT = argv[1]; nAm = argv[2]; tYp = argv[3]
 #nAm = "2_PAO1_SA25923"
 p = read.csv(paste0(pT,nAm,"-sam.csv"), header=T, stringsAsFactors=F)
 t0 = read.csv(paste0(pT,nAm,"-log.csv"), header=T)
+nAcc = min(as.numeric(argv[4]), nrow(p))
 
 x0 = rep(0,ncol(t0)-1)
 for(i in 2:ncol(t0)){
@@ -54,14 +54,18 @@ matplot(t0[,1],t0[,-1], type="p", pch=1:(ncol(t0)-1), cex=1.2, col=ptCol, xlab=p
 legend("bottomleft", inset=c(0,0), legend = colnames(t0)[-1], pch = rep(16,ncol(t0)-1), col = ptCol)
 
 ##### plot + simulation percentage match on data #####
-for(i in 1:nrow(p)){
+i9=nrow(p);for(i in 1:nrow(p)){
 	a0 = solveLV(x0, as.numeric(p[i,]), range(t0[,1]), oDe)
-	matplot(a0[,1],a0[,-1], type="l", add=T, col=lnCol)
+	for(i0 in 2:ncol(a0)){a0[,i0] = ifelse(a0[,i0]>150 | a0[,i0]<0,-100,a0[,i0])};rm(i0)
+	a0[is.na(a0)] = -100
+	if(all(a0!=-100)){
+		matplot(a0[,1],a0[,-1], type="l", add=T, col=lnCol)
+	}else{i9 = i9-1}
 	a0 = a0[which(a0[,1] %in% tUq),]
-	a0[is.na(a0)] = -1
 	for(j in 1:length(tUq)){for(k in 2:ncol(t0)){
 		dRec[j,k] = dRec[j,k] + (a0[j,k]>=dMin[j,k] & a0[j,k]<=dMax[j,k])
 	}}}
+text(fivenum(t0[,1])[2]+0.01*max(t0[,1]),max(t0[,-1]),paste("Number of simulation(s)\nAccepted:",ifelse(as.numeric(argv[4])>nrow(p), paste0(">",nrow(p)), argv[4]), "; Plotted:",i9), cex=1.2)
 invisible(dev.off())
 
 ##### simulation percentage match on data #####

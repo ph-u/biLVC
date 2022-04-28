@@ -2,9 +2,9 @@
 # author: ph-u
 # script: bayesInfer.r
 # desc: Bayesian Inference on Lotka-Volterra Competition/generalized Model
-# in: Rscript bayesInfer.r [basename] [competition (c) / generalized (g)]
+# in: Rscript bayesInfer.r [basename] [competition (c) / generalized (g)] [max-iteration (in 10^5)]
 # out: result/*.pdf, data/*.{csv,txt}
-# arg: 1
+# arg: 3
 # date: 20220107
 
 #SBATCH -J mcmc-LV
@@ -14,7 +14,7 @@
 #SBATCH --time=12:00:00
 #SBATCH --mail-type=NONE
 #SBATCH --no-requeue
-#SBATCH -p skylake
+#SBATCH -p skylake-himem
 
 argv=(commandArgs(T))
 library(FME) # FME(1.3.6.2), deSolve(1.30), rootSolve(1.8.2.3), coda(0.19.4)
@@ -58,7 +58,7 @@ rEc[,"max"] = ifelse(rEc[,"max"]<=mcFIT$par, mcFIT$par+abs(rEc[,"max"]), rEc[,"m
 write.csv(rEc, paste0(pT,"data/",argv[1],"-pri.csv"), quote=F, row.names=F)
 
 ##### MCMC ##### 20220108, 20220331 (+oDe option)
-mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, oDe=tP, lower=rEc[,"min"], upper=rEc[,"max"], niter=1e5, outputlength=1e2, updatecov=50, burninlength=0)
+mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, oDe=tP, lower=rEc[,"min"], upper=rEc[,"max"], niter=as.numeric(argv[3])*10^5, outputlength=1e2, updatecov=50, burninlength=0)
 
 ##### summary ##### 20220108
 save(mcMC, file=paste0(pT,"data/",argv[1],"-sam.RData"))

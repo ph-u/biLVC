@@ -2,14 +2,15 @@
 #! author: ph-u
 #! script: pipe.sh
 #! desc: Bayesian Inference pipeline
-#! in: bash pipe.sh
+#! in: bash pipe.sh [max-iteration (in 10^5)]
 #! out: (SEE bayesInfer.r)
-#! arg: 0
+#! arg: 1
 #! date: 20220101, 20220108 (main pipeline), 20220331 (+generalized Lotka-Volterra option)
 
 ##### set enviroment ##### 2022{0101,0103}
 nUm1='^[0-9]';nUm2='[0-9]$' #nUm='^[0-9]+*[0-9]+$' # line start & end with numbers
 p1=`pwd`;p2=`dirname $0`;p0=`echo -e "${p1}/${p2}"|sed -e "s/\.$//"`
+[[ -z $1 ]] && mX=1 || mX=$1
 echo -e "BImcmc-LV - (`date`)"
 
 ##### get time-series ##### 20220101
@@ -33,9 +34,9 @@ while read -r L;do
 	fi
 	echo -e "${L} analysed by ${tP0} (`date`)"
 	if [[ ${OSTYPE} == "linux-gnu" ]];then
-		sbatch bayesInfer.r ${L} ${tP} 1> ../data/${L}-rec.txt &
+		sbatch bayesInfer.r ${L} ${tP} ${mX} 1> ../data/${L}-rec.txt &
 	else
-		Rscript bayesInfer.r ${L} ${tP} 1> ../data/${L}-rec.txt
+		Rscript bayesInfer.r ${L} ${tP} ${mX} 1> ../data/${L}-rec.txt
 	fi
 done < ../data/fList.txt
 rm ../data/fList.txt
