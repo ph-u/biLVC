@@ -4,7 +4,7 @@
 # desc: plot + ecology analysis
 # in: bash analysisPlots.sh [path/2/data]
 # out: NA (see respective scripts)
-# arg: 1
+# arg: 1 (req: *-{sam,pri,log}.csv, *-rec.txt)
 # date: 20220111
 
 [[ -z $1 ]] && grep -e "^\# desc\|^\# in" $0 | cut -f 2 -d ":" | sed -e "s/^ //" && exit

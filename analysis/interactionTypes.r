@@ -30,18 +30,15 @@ if(length(pRM)>0){p0=p0[-pRM,]}
 p0 = p0[,which(pR[,2] != "r" & pR[,2] != "k")]
 pR = pR[which(pR[,2] != "r" & pR[,2] != "k"),]
 
-##### single ecological relationship ##### 2022{0109,0111,0331}
-tY = c("competition","mutualism","neutral/no_interaction","predator/parasite_of_other","prey/host_of_other","commensal_of_other","commensal_Host_of_other","harmed_by_other","harming_other")
+##### single ecological relationship ##### 2022{0109,0111,0331,0501}
+tY = c("mutualism","commensal_Host_of_other","prey/host_of_other","commensal_of_other","neutral/no_interaction","harmed_by_other","predator/parasite_of_other","harming_other","competition")
 sEr = function(i1,i2,cT=tY,tP=tYpe){
-	if(tP=="LVC"){ # LVC: + harm ; - help ; compare i1 (1->2) to i2 (2->1)
-		iT = ifelse(i1<0, ifelse(i2<0,tY[2], ifelse(i2>0,tY[5],tY[7])),
-		ifelse(i1>0, ifelse(i2>0,tY[1],ifelse(i2<0,tY[4],tY[9])),
-		ifelse(i2>0,tY[8],ifelse(i2<0,tY[6],tY[3]))))
-	}else{ # gLV: - harm ; + help ; compare i1 (1->2) to i2 (2->1)
-		iT = ifelse(i1>0, ifelse(i2>0,tY[2], ifelse(i2<0,tY[5],tY[7])),
-		ifelse(i1<0, ifelse(i2<0,tY[1],ifelse(i2>0,tY[4],tY[9])),
-		ifelse(i2<0,tY[8],ifelse(i2>0,tY[6],tY[3]))))
-	}
+	rEf = data.frame("P2p"=rep(1:-1,each=3),"p2P"=rep(1:-1,3),"P_is_the"=cT)
+	if(tP=="LVC"){i1 = -i1;i2 = -i2}
+	i1 = ifelse(i1==0,0,ifelse(i1>0,1,-1))
+	i2 = ifelse(i2==0,0,ifelse(i2>0,1,-1))
+	iT = rep(NA,length(i1))
+	for(i in 1:length(iT)){iT[i] = rEf$P_is_the[which(rEf$P2p==i1[i] & rEf$p2P==i2[i])]}
 	return(iT)
 }
 
@@ -66,7 +63,7 @@ if(tYpe=="LVC"){
 }else{i9 = j9 = 1:length(n)}
 i0=1; for(i in i9){for(j in j9){if(ifelse(tYpe=="LVC",i>j,i>=j)){
 	w[i0,1:2] = c(n[i],n[j])
-	b = table(sEr(p0[,a[i,j]],p0[,a[j,i]]))
+	b = table(sEr(p0[,a[j,i]],p0[,a[i,j]]))
 	w[i0,names(b)] = b
 	if(length(b)>1){
 		l = chisq.test(b)

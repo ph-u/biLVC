@@ -1,0 +1,7 @@
+interaction1,interaction2,Chi-sq,p-val
+competition,mutualism,46.2962962962963,6.09935618149475e-11
+competition,predator/parasite_of_other,0.333333333333333,3.38221716990464
+competition,prey/host_of_other,39.3404255319149,2.13596503115342e-09
+mutualism,predator/parasite_of_other,49.0754716981132,1.47780575459804e-11
+mutualism,prey/host_of_other,0.505154639175258,2.86346359402809
+predator/parasite_of_other,prey/host_of_other,42.0869565217391,5.23821441049969e-10

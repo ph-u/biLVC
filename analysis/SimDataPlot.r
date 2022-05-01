@@ -40,18 +40,23 @@ for(i in 1:length(tUq)){
 	d = t0[which(t0[,1]==tUq[i]),]
 	for(j in 2:ncol(t0)){
 		d0 = range(d[,j])
-		dMin[i,j] = max(d0[1]-diff(d0)/2,0)
-		dMax[i,j] = d0[2]+diff(d0)/2
+		dMin[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),min(d0[1]*.9,d0[1]-1),max(d0[1]-diff(d0)/2,0))
+		dMax[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),max(d0[1]*1.1,d0[1]+1),d0[2]+diff(d0)/2)
 }}
 
 ##### plot time-series #####
 if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"}
 if(argv[3]=="LVC"){oDe="c"}else{oDe="g"}
+if(ncol(t0)-1>5){pltAttr = c(T,"topright",-.18,10)}else{pltAttr = c(F,"bottomleft",0,0)}
+ptCol0 = rep(ptCol,ceiling((ncol(t0)-1)/length(ptCol)))
+lnCol0 = rep(lnCol,ceiling((ncol(t0)-1)/length(lnCol)))
 
 pdf(paste0(pT,"../result/",nAm,"-ts.pdf"), width=14)
-par(mar=c(5,5,1,0)+.1, xpd=F)
-matplot(t0[,1],t0[,-1], type="p", pch=1:(ncol(t0)-1), cex=1.2, col=ptCol, xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")), ylab=yLab, cex.axis=2, cex.lab=2)
-legend("bottomleft", inset=c(0,0), legend = colnames(t0)[-1], pch = rep(16,ncol(t0)-1), col = ptCol)
+par(mar=c(5,5,1,as.numeric(pltAttr[4]))+.1, xpd=as.logical(pltAttr[1]))
+matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=1.2, col=ptCol0,
+	xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")),
+	ylab=yLab, cex.axis=2, cex.lab=2)
+legend(pltAttr[2], inset=c(as.numeric(pltAttr[3]),0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = ptCol0)
 
 ##### plot + simulation percentage match on data #####
 i9=nrow(p);for(i in 1:nrow(p)){
@@ -59,13 +64,13 @@ i9=nrow(p);for(i in 1:nrow(p)){
 	for(i0 in 2:ncol(a0)){a0[,i0] = ifelse(a0[,i0]>150 | a0[,i0]<0,-100,a0[,i0])};rm(i0)
 	a0[is.na(a0)] = -100
 	if(all(a0!=-100)){
-		matplot(a0[,1],a0[,-1], type="l", add=T, col=lnCol)
+		matplot(a0[,1],a0[,-1], type="l", add=T, col=lnCol0, lty=i%%5+1)
 	}else{i9 = i9-1}
 	a0 = a0[which(a0[,1] %in% tUq),]
 	for(j in 1:length(tUq)){for(k in 2:ncol(t0)){
 		dRec[j,k] = dRec[j,k] + (a0[j,k]>=dMin[j,k] & a0[j,k]<=dMax[j,k])
 	}}}
-text(fivenum(t0[,1])[2]+0.01*max(t0[,1]),max(t0[,-1]),paste("Number of simulation(s)\nAccepted:",ifelse(as.numeric(argv[4])>nrow(p), paste0(">",nrow(p)), argv[4]), "; Plotted:",i9), cex=1.2)
+text(fivenum(t0[,1])[2],max(t0[,-1]),paste("Number of simulation(s)\nAccepted:",ifelse(as.numeric(argv[4])>nrow(p), paste0(">",nrow(p)), argv[4]), "; Plotted:",i9), cex=1.2)
 invisible(dev.off())
 
 ##### simulation percentage match on data #####
