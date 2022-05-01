@@ -1,7 +1,0 @@
-subject,other,mutualism,commensal_Host_of_other,prey/host_of_other,commensal_of_other,neutral/no_interaction,harmed_by_other,predator/parasite_of_other,harming_other,competition,Chi-sq,p-val
-PA,PA,100,0,0,0,0,0,0,0,0,NA,NA
-SA,PA,0,0,0,0,0,0,100,0,0,NA,NA
-SA,SA,0,0,0,0,0,0,0,0,100,NA,NA
-CA,PA,100,0,0,0,0,0,0,0,0,NA,NA
-CA,SA,100,0,0,0,0,0,0,0,0,NA,NA
-CA,CA,34,0,0,0,0,0,0,0,66,10.24,0.0013742758758317
