@@ -41,13 +41,13 @@ for(i in 1:length(tUq)){
 	for(j in 2:ncol(t0)){
 		d0 = range(d[,j])
 		dMin[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),min(d0[1]*.9,d0[1]-1),max(d0[1]-diff(d0)/2,0))
-		dMax[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),max(d0[1]*1.1,d0[1]+1),d0[2]+diff(d0)/2)
+		dMax[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),max(d0[2]*1.1,d0[2]+1),d0[2]+diff(d0)/2)
 }}
 
 ##### plot time-series #####
 if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"}
 if(argv[3]=="LVC"){oDe="c"}else{oDe="g"}
-if(ncol(t0)-1>5){pltAttr = c(T,"topright",-.18,10)}else{pltAttr = c(F,"bottomleft",0,0)}
+if(ncol(t0)-1>5){pltAttr = c(T,"topright",-.19,12)}else{pltAttr = c(F,"bottomleft",0,0)}
 ptCol0 = rep(ptCol,ceiling((ncol(t0)-1)/length(ptCol)))
 lnCol0 = rep(lnCol,ceiling((ncol(t0)-1)/length(lnCol)))
 
@@ -64,7 +64,7 @@ i9=nrow(p);for(i in 1:nrow(p)){
 	for(i0 in 2:ncol(a0)){a0[,i0] = ifelse(a0[,i0]>150 | a0[,i0]<0,-100,a0[,i0])};rm(i0)
 	a0[is.na(a0)] = -100
 	if(all(a0!=-100)){
-		matplot(a0[,1],a0[,-1], type="l", add=T, col=lnCol0, lty=i%%5+1)
+		matplot(a0[,1],a0[,-1], type="l", add=T, col=lnCol0, lty=(1:(ncol(t0)-1))%%5+1)
 	}else{i9 = i9-1}
 	a0 = a0[which(a0[,1] %in% tUq),]
 	for(j in 1:length(tUq)){for(k in 2:ncol(t0)){

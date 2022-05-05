@@ -55,7 +55,7 @@ if(tYpe=="LVC"){
 };row.names(a) = colnames(a) = n
 
 ##### proportion of deduced ecological interaction types #####
-w = as.data.frame(matrix(0, nr=ifelse(tYpe=="LVC",ncol(p0)/2,length(n)*(length(n)-1)), nc=length(tY)+4))
+w = as.data.frame(matrix(0, nr=ifelse(tYpe=="LVC",ncol(p0)/2,length(n)*(length(n)-1)/2+length(n)), nc=length(tY)+4))
 colnames(w) = c("subject","other",tY,"Chi-sq","p-val")
 if(tYpe=="LVC"){
 	i9 = 2:length(n)
