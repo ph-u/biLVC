@@ -34,7 +34,7 @@ while read -r L;do
 	fi
 	echo -e "${L} analysed by ${tP0} (`date`)"
 	if [[ ${OSTYPE} == "linux-gnu" ]];then
-		sbatch bayesInfer.r ${L} ${tP} ${mX} 1> ../data/${L}-rec.txt &
+		sbatch bayesInfer.r ${L} ${tP} ${mX} `pwd` 1> ../data/${L}-rec.txt &
 	else
 		Rscript bayesInfer.r ${L} ${tP} ${mX} 1> ../data/${L}-rec.txt
 	fi

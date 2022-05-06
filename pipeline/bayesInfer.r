@@ -19,7 +19,7 @@
 argv=(commandArgs(T))
 library(FME) # FME(1.3.6.2), deSolve(1.30), rootSolve(1.8.2.3), coda(0.19.4)
 # doi: 10.18637/jss.v033.i03
-pT=ifelse(version$os=="linux-gnu","/home/pmh65/rds/00_biLVC/","../")
+pT=paste0(ifelse(version$os=="linux-gnu",paste0(argv[4],"/"),""),"../")
 source(paste0(pT,"pipeline/src.r"))
 nM=argv[1]; tP=argv[2]
 sT=read.csv(paste0(pT,"raw/",nM,".csv"), header=T)
