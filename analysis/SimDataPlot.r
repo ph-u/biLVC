@@ -47,16 +47,15 @@ for(i in 1:length(tUq)){
 ##### plot time-series #####
 if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"}
 if(argv[3]=="LVC"){oDe="c"}else{oDe="g"}
-if(ncol(t0)-1>5){pltAttr = c(T,"topright",-.19,12)}else{pltAttr = c(F,"bottomleft",0,0)}
 ptCol0 = rep(ptCol,ceiling((ncol(t0)-1)/length(ptCol)))
 lnCol0 = rep(lnCol,ceiling((ncol(t0)-1)/length(lnCol)))
 
 pdf(paste0(pT,"../result/",nAm,"-ts.pdf"), width=14)
-par(mar=c(5,5,1,as.numeric(pltAttr[4]))+.1, xpd=as.logical(pltAttr[1]))
+par(mar=c(5,5,1,12)+.1, xpd=T)
 matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=1.2, col=ptCol0,
 	xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")),
 	ylab=yLab, cex.axis=2, cex.lab=2)
-legend(pltAttr[2], inset=c(as.numeric(pltAttr[3]),0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = ptCol0)
+legend("topright", inset=c(-.19,0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = ptCol0)
 
 ##### plot + simulation percentage match on data #####
 i9=nrow(p);for(i in 1:nrow(p)){
@@ -70,7 +69,7 @@ i9=nrow(p);for(i in 1:nrow(p)){
 	for(j in 1:length(tUq)){for(k in 2:ncol(t0)){
 		dRec[j,k] = dRec[j,k] + (a0[j,k]>=dMin[j,k] & a0[j,k]<=dMax[j,k])
 	}}}
-text(fivenum(t0[,1])[2],max(t0[,-1]),paste("Number of simulation(s)\nAccepted:",ifelse(as.numeric(argv[4])>nrow(p), paste0(">",nrow(p)), argv[4]), "; Plotted:",i9), cex=1.2)
+text(min(t0[,1])+diff(range(t0[,1]))*.25,max(t0[,-1]),paste("Number of simulation(s)\nAccepted:",ifelse(as.numeric(argv[4])>nrow(p), paste0(">",nrow(p)), argv[4]), "; Plotted:",i9), cex=1.2)
 invisible(dev.off())
 
 ##### simulation percentage match on data #####
