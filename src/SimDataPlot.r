@@ -2,19 +2,18 @@
 # author: ph-u
 # script: SimDataPlot.r
 # desc: estimated parameter changes through time
-# in: Rscript SimDataPlot.r [path/to/data/] [data_basename] [math-model-type] [num_accepted_simulations]
+# in: Rscript SimDataPlot.r [path/to/data/] [data_basename] [replicate] [math-model-type] [num_accepted_simulations]
 # out: result/*-{ts}.pdf
-# arg: 4
+# arg: 5
 # date: 20220109
 
 argv=(commandArgs(T))
-source("../pipeline/src.r")
+source("src.r")
 library(deSolve)
-pT = argv[1]; nAm = argv[2]; tYp = argv[3]
-#nAm = "2_PAO1_SA25923"
-p = read.csv(paste0(pT,nAm,"-sam.csv"), header=T, stringsAsFactors=F)
+pT = argv[1]; nAm = argv[2]; rEp=argv[3]; tYp = argv[4]
+p = read.csv(paste0(pT,nAm,"-",rEp,"-sam.csv"), header=T, stringsAsFactors=F)
 t0 = read.csv(paste0(pT,nAm,"-log.csv"), header=T)
-nAcc = min(as.numeric(argv[4]), nrow(p))
+nAcc = min(as.numeric(argv[5]), nrow(p))
 
 x0 = rep(0,ncol(t0)-1)
 for(i in 2:ncol(t0)){
@@ -46,11 +45,11 @@ for(i in 1:length(tUq)){
 
 ##### plot time-series #####
 if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"}
-if(argv[3]=="LVC"){oDe="c"}else{oDe="g"}
+if(argv[4]=="LVC"){oDe="c"}else{oDe="g"}
 ptCol0 = rep(ptCol,ceiling((ncol(t0)-1)/length(ptCol)))
 lnCol0 = rep(lnCol,ceiling((ncol(t0)-1)/length(lnCol)))
 
-pdf(paste0(pT,"../result/",nAm,"-ts.pdf"), width=14)
+pdf(paste0(pT,"../result/",nAm,"-",rEp,"-ts.pdf"), width=14)
 par(mar=c(5,5,1,12)+.1, xpd=T)
 matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=1.2, col=ptCol0,
 	xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")),
@@ -69,9 +68,9 @@ i9=nrow(p);for(i in 1:nrow(p)){
 	for(j in 1:length(tUq)){for(k in 2:ncol(t0)){
 		dRec[j,k] = dRec[j,k] + (a0[j,k]>=dMin[j,k] & a0[j,k]<=dMax[j,k])
 	}}}
-text(min(t0[,1])+diff(range(t0[,1]))*.25,max(t0[,-1]),paste("Number of simulation(s)\nAccepted:",ifelse(as.numeric(argv[4])>nrow(p), paste0(">",nrow(p)), argv[4]), "; Plotted:",i9), cex=1.2)
+text(min(t0[,1])+diff(range(t0[,1]))*.25,max(t0[,-1]),paste("Number of simulation(s)\nAccepted:",ifelse(as.numeric(argv[5])>nrow(p), paste0(">",nrow(p)), argv[5]), "; Plotted:",i9), cex=1.2)
 invisible(dev.off())
 
 ##### simulation percentage match on data #####
 dRec[,-1] = dRec[,-1]/nrow(p)
-write.csv(dRec,paste0(pT,"../result/",nAm,"-tsMatch.csv"), quote=F, row.names=F)
+write.csv(dRec,paste0(pT,"../result/",nAm,"-",rEp,"-tsMatch.csv"), quote=F, row.names=F)

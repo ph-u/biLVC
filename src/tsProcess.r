@@ -2,15 +2,15 @@
 # author: ph-u
 # script: tsProcess.r
 # desc: time-series raw data process
-# in: Rscript tsProcess.r [basename] [competition (c) / generalized (g)] [/full/path]
-# out: data/[basename]-log.csv
-# arg: 2
+# in: Rscript tsProcess.r [basename] [competition (c) / generalized (g)] [replicates] [/full/path]
+# out: data/[basename]-{log,pri,seed}.csv
+# arg: 4
 # date: 20220508 (segregate from bayesInfer.r)
 
 argv=(commandArgs(T))
 library(FME)
-pT=paste0(ifelse(version$os=="linux-gnu",paste0(argv[3],"/"),""),"../")
-source(paste0(pT,"pipeline/src.r"))
+pT=paste0(ifelse(version$os=="linux-gnu",paste0(argv[4],"/"),""),"../")
+source(paste0(pT,"src/src.r"))
 nM=argv[1]; tP=argv[2]
 sT=read.csv(paste0(pT,"raw/",nM,".csv"), header=T)
 
@@ -47,3 +47,6 @@ rEc[,"min"] = ifelse(rEc[,"min"]>=mcFIT$par, mcFIT$par-abs(rEc[,"min"]), rEc[,"m
 rEc[,"max"] = ifelse(rEc[,"max"]<=mcFIT$par, mcFIT$par+abs(rEc[,"max"]), rEc[,"max"])
 write.csv(rEc, paste0(pT,"data/",argv[1],"-pri.csv"), quote=F, row.names=F)
 
+##### set seeds ##### 20220509
+sEed = data.frame("replicate"=1:as.numeric(argv[3]),"seed"=ceiling(runif(as.numeric(argv[3]))*10^9))
+write.csv(sEed,paste0(pT,"data/",argv[1],"-seed.csv"), quote=F, row.names=F)

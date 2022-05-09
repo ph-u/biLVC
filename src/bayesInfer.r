@@ -20,10 +20,12 @@ argv=(commandArgs(T))
 library(FME) # FME(1.3.6.2), deSolve(1.30), rootSolve(1.8.2.3), coda(0.19.4)
 # doi: 10.18637/jss.v033.i03
 pT=paste0(ifelse(version$os=="linux-gnu",paste0(argv[5],"/"),""),"../")
-source(paste0(pT,"pipeline/src.r"))
+source(paste0(pT,"src/src.r"))
 nM=argv[1]; tP=argv[2]
 sT=read.csv(paste0(pT,"data/",nM,"-log.csv"), header=T)
 rEc=read.csv(paste0(pT,"data/",nM,"-pri.csv"), header=T)
+sEed=read.csv(paste0(pT,"data/",nM,"-seed.csv"), header=T)
+set.seed(sEed$seed[as.numeric(argv[4])])
 
 ##### MCMC ##### 20220108, 20220331 (+oDe option)
 mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, oDe=tP, lower=rEc[,"min"], upper=rEc[,"max"], niter=as.numeric(argv[3])*10^5, outputlength=1e2, updatecov=50, burninlength=0)

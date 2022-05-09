@@ -25,11 +25,12 @@ for rAw in `ls ../raw/*.csv | grep -v "p_" | rev | cut -f 2 -d "." | cut -f 1 -d
 	fi
 ## time-series process, priors calculation
 	if [[ ${OSTYPE} == "linux-gnu" ]];then
-		Rscript tsProcess.r ${rAw} ${tP} `pwd`
+		Rscript tsProcess.r ${rAw} ${tP} ${rP} `pwd`
 	else
-		Rscript tsProcess.r ${rAw} ${tP}
+		Rscript tsProcess.r ${rAw} ${tP} ${rP}
 	fi
 ## Bayesian MCMC sampling with independent replicates
+	echo -e "${rAw}: eq ${tP0}, rep ${rP} (`date`)"
 	for rEp in `seq 1 ${rP}`;do # replicates
 		if [[ ${OSTYPE} == "linux-gnu" ]];then
 			sbatch bayesInfer.r ${rAw} ${tP} ${mX} ${rEp} `pwd` 1> ../data/${rAw}-${rEp}-rec.txt &
@@ -37,7 +38,6 @@ for rAw in `ls ../raw/*.csv | grep -v "p_" | rev | cut -f 2 -d "." | cut -f 1 -d
 			Rscript bayesInfer.r ${rAw} ${tP} ${mX} ${rEp} 1> ../data/${rAw}-${rEp}-rec.txt
 		fi
 	done
-	echo -e "${rAw}: eq ${tP0}, rep ${rP} (`date`)"
 done
 echo -e "All queued - (`date`)"
 exit
