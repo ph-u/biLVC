@@ -16,3 +16,4 @@ for i in `ls ${pT}/*-log.csv`;do
 	echo -e "analyzing: ${bNam} - (`date`)"
 	Rscript eCology.r ${pT}/ ${bNam} ${tYpe} ${rEp}
 done
+exit
