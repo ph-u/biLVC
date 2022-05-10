@@ -2,10 +2,19 @@
 # author: ph-u
 # script: tsProcess.r
 # desc: time-series raw data process
-# in: Rscript tsProcess.r [basename] [competition (c) / generalized (g)] [replicates] [/full/path]
+# in: Rscript tsProcess.r [basename] [competition (c) / generalized (g)] [replicates] [/full/path (optional)]
 # out: data/[basename]-{log,pri,seed}.csv
-# arg: 4
+# arg: 3/4
 # date: 20220508 (segregate from bayesInfer.r)
+
+#SBATCH -J tsFIT
+#SBATCH -A WELCH-SL3-CPU
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=12:00:00
+#SBATCH --mail-type=NONE
+#SBATCH --no-requeue
+#SBATCH -p skylake-himem
 
 argv=(commandArgs(T))
 library(FME)
