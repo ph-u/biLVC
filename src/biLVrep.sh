@@ -9,11 +9,12 @@
 
 ##### env #####
 mkdir -p ../{data,result}
-[[ -z $1 ]] && sT=0 || sT=$1
+[[ -z $1 ]] && sT=1 || sT=$1
 [[ -z $2 ]] && rP=1 || rP=$2
 [[ -z $3 ]] && mX=1 || mX=$3
 p1=`pwd`;p2=`dirname $0` # get full path of pipeline
 echo -e "BImcmc-LV - (`date`)"
+[[ ${sT} -gt 2 ]] && echo -e "Check input -- might be wrong?" && exit
 
 ##### analysis #####
 cd `echo -e "${p1}/${p2}"|sed -e "s/\.$//"`
