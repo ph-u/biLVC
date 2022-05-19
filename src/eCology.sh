@@ -9,6 +9,7 @@
 
 [[ -z $1 ]] && grep -e "^\# desc\|^\# in" $0 | cut -f 2 -d ":" | sed -e "s/^ //" && exit
 pT=$1
+echo -e "Analysis started: `date`"
 for i in `ls ${pT}/*-log.csv`;do
 	bNam=`echo -e ${i} | rev | cut -f 1 -d "/" | rev | cut -f 1 -d "-"`
 	tYpe=`echo -e ${bNam} | rev | cut -f 1 -d "_" | rev`
@@ -16,4 +17,5 @@ for i in `ls ${pT}/*-log.csv`;do
 	echo -e "analyzing: ${bNam} - (`date`)"
 	Rscript eCology.r ${pT}/ ${bNam} ${tYpe} ${rEp}
 done
+echo -e "All done: `date`"
 exit

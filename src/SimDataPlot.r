@@ -30,6 +30,7 @@ ptCol = cOl[which(cOl[,1] %in% colnames(t0)[-1]),2]
 lnCol = cOl[which(cOl[,1] %in% colnames(t0)[-1]),3]
 
 ##### get simulation match range #####
+acRatio = .1
 tUq = unique(t0[,1])
 tUq = tUq[order(tUq)[-1]] ## accending order safety net
 dMin = dMax = dRec = as.data.frame(matrix(0,nr=length(tUq),nc=ncol(t0)))
@@ -39,8 +40,8 @@ for(i in 1:length(tUq)){
 	d = t0[which(t0[,1]==tUq[i]),]
 	for(j in 2:ncol(t0)){
 		d0 = range(d[,j])
-		dMin[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),min(d0[1]*.9,d0[1]-1),max(d0[1]-diff(d0)/2,0))
-		dMax[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),max(d0[2]*1.1,d0[2]+1),d0[2]+diff(d0)/2)
+		dMin[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),min(d0[1]*(1-acRatio),d0[1]-1),max(d0[1]-diff(d0)/2,0))
+		dMax[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),max(d0[2]*(1+acRatio),d0[2]+1),d0[2]+diff(d0)/2)
 }}
 
 ##### plot time-series #####

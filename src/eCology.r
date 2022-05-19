@@ -3,7 +3,7 @@
 # script: eCology.r
 # desc: extract ecology from simulation replicates
 # in: Rscript eCology.r [path/to/data/] [time_series_basename] [LVC/gLV] [replicates]
-# out: result/*-eco.csv
+# out: result/*-{eco,tsMatch,kwPairs_[c1]_[c2]}.csv, result/*-{kwPairs_[c1]_[c2],tsAllRep}.pdf
 # arg: 4
 # date: 20220508 (supersede interactionTypes.r)
 
@@ -15,10 +15,24 @@ library(PMCMRplus) # v1.9.3
 pT = argv[1]; nAm = argv[2]; tYpe=argv[3]
 t0 = read.csv(paste0(pT,nAm,"-log.csv"), header=T)
 pR = read.csv(paste0(pT,nAm,"-pri.csv"), header=T)
-rP = vector(mode="list", length=as.numeric(argv[4]))
+sD = read.csv(paste0(pT,nAm,"-seed.csv"), header=T)
+rP = rK = vector(mode="list", length=as.numeric(argv[4]))
 for(i in 1:as.numeric(argv[4])){
 	rP[[i]] = read.csv(paste0(pT,nAm,"-",i,"-sam.csv"), header=T)
 }
+dMaxSim = nrow(rP[[1]])*as.numeric(argv[4]) # ref max simulation
+
+##### colour ##### (from SimDataPlot.r)
+cBp = c("#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#e79f00", "#9ad0f3", "#F0E442", "#999999", "#cccccc", "#6633ff", "#00FFCC", "#0066cc", "#000000")
+cBl = c("#E69F0028", "#56B4E944", "#009E7349", "#0072B233", "#D55E0033", "#CC79A733", "#e79f0033", "#9ad0f333", "#F0E44233", "#99999933", "#cccccc33", "#6633ff33", "#00FFCC33", "#0066cc33", "#00000033")
+n=colnames(t0)[-1]
+cOl = data.frame(id=n,cPt=cBp[1:length(n)],cLn=cBl[1:length(n)])
+ptCol = cOl[which(cOl[,1] %in% colnames(t0)[-1]),2]
+lnCol = cOl[which(cOl[,1] %in% colnames(t0)[-1]),3]
+if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"}
+if(argv[4]=="LVC"){oDe="c"}else{oDe="g"}
+ptCol0 = rep(ptCol,ceiling((ncol(t0)-1)/length(ptCol)))
+lnCol0 = rep(lnCol,ceiling((ncol(t0)-1)/length(lnCol)))
 
 ##### categorize ecology ##### (from interactionTypes.r)
 tY = c("mutualism","commensal_Host_of_c2","prey/host_of_c2","commensal_of_c2","neutral/no_interaction","harmed_by_c2","predator/parasite_of_c2","harming_c2","competition")
@@ -32,20 +46,76 @@ sEr = function(i1,i2,cT=tY,tP=tYpe){
         return(iT)
 }
 
+##### get simulation match range ##### (from SimDataPlot.r)
+acRatio = .1
+tUq = unique(t0[,1])
+tUq = tUq[order(tUq)[-1]] ## accending order safety net
+dMin = dMax = dRec = as.data.frame(matrix(0,nr=length(tUq),nc=ncol(t0)))
+colnames(dMin) = colnames(dMax) = colnames(dRec) = colnames(t0)
+dMin[,1] = dMax[,1] = dRec[,1] = tUq
+for(i in 1:length(tUq)){
+        d = t0[which(t0[,1]==tUq[i]),]
+        for(j in 2:ncol(t0)){
+                d0 = range(d[,j])
+                dMin[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),min(d0[1]*(1-acRatio),d0[1]-1),max(d0[1]-diff(d0)/2,0))
+                dMax[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),max(d0[2]*(1+acRatio),d0[2]+1),d0[2]+diff(d0)/2)
+}}
+
 ##### exclude non-fitting simulations ##### 20220411
 oDe = ifelse(tYpe=="LVC","c","g")
 x0 = rep(0,ncol(t0)-1)
 for(i in 2:ncol(t0)){x0[i-1] = median(t0[which(t0[,1]==min(t0[,1])),i])}
-for(i1 in 1:length(rP)){
+
+##### plot Time-series #####
+pdf(paste0(pT,"../result/",nAm,"-tsAllRep.pdf"), width=14)
+par(mar=c(5,5,1,12)+.1, xpd=T)
+matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=1.2, col=ptCol0,
+        xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")),
+        ylab=yLab, cex.axis=2, cex.lab=2)
+legend("topright", inset=c(-.19,0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = ptCol0)
+
+i9=0;for(i1 in 1:length(rP)){
+	set.seed(sD$seed[i1])
 	pRM = c();for(i in 1:nrow(rP[[i1]])){
 		a0 = solveLV(x0, as.numeric(rP[[i1]][i,]), range(t0[,1]), oDe)
 	        for(i0 in 2:ncol(a0)){a0[,i0] = ifelse(a0[,i0]>150 | a0[,i0]<0,-100,a0[,i0])};rm(i0)
 		a0[is.na(a0)] = -100
-		if(any(a0==-100)){pRM = c(pRM,i)}
-	};if(length(pRM)>0){rP[[i1]]=rP[[i1]][-pRM,]}
+		if(any(a0==-100)){pRM = c(pRM,i)}else{
+			matplot(a0[,1],a0[,-1], type="l", add=T, col=lnCol0, lty=(1:(ncol(t0)-1))%%5+1)
+			i9=i9+1
+		}
+## Simulation-data match count
+		for(j in 1:length(tUq)){for(k in 2:ncol(t0)){
+			dRec[j,k] = dRec[j,k] + (a0[j,k]>=dMin[j,k] & a0[j,k]<=dMax[j,k])
+
+        }}};if(length(pRM)>0){rP[[i1]]=rP[[i1]][-pRM,]}
+	rK[[i1]] = rP[[i1]][,which(pR[,2] == "r" | pR[,2] == "k")]
 	rP[[i1]] = rP[[i1]][,which(pR[,2] != "r" & pR[,2] != "k")]
 };rm(i,i1)
+pRrk = pR[which(pR[,2] == "r" | pR[,2] == "k"),]
 pR = pR[which(pR[,2] != "r" & pR[,2] != "k"),]
+
+##### ex: growth rate, carrying capacity #####
+if(nrow(rK[[1]])>0){
+	rkVal = rK[[1]]
+	rkVal$replicate = 1
+}else{
+	rkVal = as.data.frame(matrix(0,nr=0,nc=nrow(pR)+1))
+	colnames(rkVal)[ncol(rkVal)]="replicate"
+}
+for(i in 2:length(rK)){if(nrow(rK[[i]])>0){
+	tMp = rK[[i]];tMp$replicate = i
+	rkVal = rbind(rkVal,tMp)
+}};colnames(rkVal)[-ncol(rkVal)] = paste(pRrk[,1],pRrk[,2],sep=".")
+write.csv(rkVal,paste0(pT,"../data/",nAm,"-rkValue.csv"), quote=F, row.names=F)
+
+##### ex: simulation percentage match on data ##### (from SimDataPlot.r)
+dRec[,-1] = dRec[,-1]/dMaxSim
+write.csv(dRec,paste0(pT,"../data/",nAm,"-tsMatch.csv"), quote=F, row.names=F)
+
+##### ex: Time-series plot #####
+text(min(t0[,1])+diff(range(t0[,1]))*.25,max(t0[,-1]),paste("Number of simulation(s)\nPlotted:",i9, "set(s)"), cex=1.2)
+invisible(dev.off())
 
 ##### interaction matrix ##### (from interactionTypes.r)
 n = unique(pR[,1])
@@ -80,7 +150,7 @@ eCo$category2 = rep(rep(catComb[,2],each=length(tY)),length(rP))
 for(i in 1:length(rP)){
 	eCo$fit_sim[which(eCo$replicate==i)] = nrow(rP[[i]])
 	for(c2 in 1:length(n)){ for(c1 in 1:length(n)){
-		if(ifelse(tYpe=="LVC",c2>c1,c2>=c1)){
+		if(ifelse(tYpe=="LVC",c2>c1,c2>=c1) & nrow(rP[[i]])>0){
 			cAt = table(sEr(rP[[i]][,a[c2,c1]],rP[[i]][,a[c1,c2]])) # a[row,col] - "col" (P) affect population of "row" (p)
 			for(i0 in 1:length(cAt)){
 				eCo$count[which(eCo$category1==colnames(a)[c1] & eCo$category2==colnames(a)[c2] & eCo$replicate==i & eCo$c1_is==names(cAt)[i0])] = cAt[i0]
@@ -88,8 +158,8 @@ for(i in 1:length(rP)){
 		}
 	}}
 };rm(i)
-eCo$ratio_in_rep = eCo$count/eCo$fit_sim # relationship ratio in the top 100 best-fit after double biological simulation-data reality check
-write.csv(eCo,paste0(pT,"../result/",nAm,"-eco.csv"), quote=F, row.names=F)
+eCo$ratio_in_rep = ifelse(eCo$fit_sim==0,0,eCo$count/eCo$fit_sim) # relationship ratio in the top 100 best-fit after double biological simulation-data reality check
+write.csv(eCo,paste0(pT,"../data/",nAm,"-eco.csv"), quote=F, row.names=F)
 
 ##### Kruskal test + posthoc Nemenyi (single-step p-adj) #####
 for(i in 1:nrow(catComb)){
@@ -104,8 +174,9 @@ for(i in 1:nrow(catComb)){
 		"interaction1"=rep(row.names(kwSta),ncol(kwSta)),
 		"interaction2"=rep(colnames(kwSta),each=nrow(kwSta)),
 		"chi.sq"=kwS, "adj.p"=kwP)
-	kwTab = kwTab[which(!is.na(kwTab$adj.p) & kwTab$adj.p<=.1),]
+	kwTab = kwTab[!is.na(kwTab$adj.p),]
 	write.csv(kwTab,paste0(pT,"../result/",nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".csv"), quote=F, row.names=F)
+	kwTab = kwTab[which(kwTab$adj.p<=.1),]
 
 ## grouped boxplot
 	pdf(paste0(pT,"../result/",nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".pdf"))
@@ -113,13 +184,15 @@ for(i in 1:nrow(catComb)){
 	boxplot(i0$ratio_in_rep~gsub("/"," / ",gsub("_"," ",gsub("_c2","",gsub("_of_c2","",i0$c1_is)))),
 	ylim=c(0,1+nrow(kwTab)/10), col="#FFFFFFFF", xlab="", ylab=paste0("ratio of likeliness in ",argv[4]," replicates"), las=2, pch=4, yaxt="n")
 	axis(2,at=seq(0,1,.2),labels=seq(0,1,.2))
-	lB = tY[order(tY)]
-	lBplt = kwTab
-	for(i2 in 1:length(lB)){for(i1 in 1:2){lBplt[which(lBplt[,i1]==lB[i2]),i1]=i2}}
-	lBplt$chi.sq = round(lBplt$chi.sq,2)
-	lBplt$adj.p = ifelse(lBplt$adj.p<.001,"<<0.01",round(lBplt$adj.p,3))
-	segments(x0=as.numeric(lBplt[,1]),x1=as.numeric(lBplt[,2]),y0=(1:nrow(lBplt))/10+1)
-	text(x = (as.numeric(lBplt[,1])+as.numeric(lBplt[,2]))/2-.5, y = (1:nrow(lBplt))/10+1.03, labels=paste("X =",lBplt[,3],"; adj-p =",lBplt[,4]), xpd=T)
+	if(nrow(kwTab)>0){
+		lB = tY[order(tY)]
+		lBplt = kwTab
+		for(i2 in 1:length(lB)){for(i1 in 1:2){lBplt[which(lBplt[,i1]==lB[i2]),i1]=i2}}
+		lBplt$chi.sq = round(lBplt$chi.sq,2)
+		lBplt$adj.p = ifelse(lBplt$adj.p<.001,"<<0.01",round(lBplt$adj.p,3))
+		segments(x0=as.numeric(lBplt[,1]),x1=as.numeric(lBplt[,2]),y0=(1:nrow(lBplt))/10+1)
+		text(x = (as.numeric(lBplt[,1])+as.numeric(lBplt[,2]))/2-.5, y = (1:nrow(lBplt))/10+1.03, labels=paste("X =",lBplt[,3],"; adj-p =",lBplt[,4]), xpd=T)
+	}
 	invisible(dev.off())
 }
 
