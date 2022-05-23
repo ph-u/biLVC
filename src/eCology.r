@@ -176,13 +176,12 @@ for(i in 1:nrow(catComb)){
 		"chi.sq"=kwS, "adj.p"=kwP)
 	kwTab = kwTab[!is.na(kwTab$adj.p),]
 	write.csv(kwTab,paste0(pT,"../result/",nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".csv"), quote=F, row.names=F)
-	kwTab = kwTab[which(kwTab$adj.p<=.1),]
 
 ## grouped boxplot
-	pdf(paste0(pT,"../result/",nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".pdf"))
+	pdf(paste0(pT,"../result/",nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".pdf"), width=7,height=9)
 	par(mar=c(10,4.5,0,2)+.1, xpd=T)
 	boxplot(i0$ratio_in_rep~gsub("/"," / ",gsub("_"," ",gsub("_c2","",gsub("_of_c2","",i0$c1_is)))),
-	ylim=c(0,1+nrow(kwTab)/10), col="#FFFFFFFF", xlab="", ylab=paste0("ratio of likeliness in ",argv[4]," replicates"), las=2, pch=4, yaxt="n")
+	ylim=c(0,1+nrow(kwTab)/5), col="#FFFFFFFF", xlab="", ylab=paste0("ratio of likeliness in ",argv[4]," replicates"), las=2, pch=4, yaxt="n")
 	axis(2,at=seq(0,1,.2),labels=seq(0,1,.2))
 	if(nrow(kwTab)>0){
 		lB = tY[order(tY)]
@@ -190,8 +189,9 @@ for(i in 1:nrow(catComb)){
 		for(i2 in 1:length(lB)){for(i1 in 1:2){lBplt[which(lBplt[,i1]==lB[i2]),i1]=i2}}
 		lBplt$chi.sq = round(lBplt$chi.sq,2)
 		lBplt$adj.p = ifelse(lBplt$adj.p<.001,"<<0.01",round(lBplt$adj.p,3))
-		segments(x0=as.numeric(lBplt[,1]),x1=as.numeric(lBplt[,2]),y0=(1:nrow(lBplt))/10+1)
-		text(x = (as.numeric(lBplt[,1])+as.numeric(lBplt[,2]))/2-.5, y = (1:nrow(lBplt))/10+1.03, labels=paste("X =",lBplt[,3],"; adj-p =",lBplt[,4]), xpd=T)
+		cOls = ifelse(lBplt$adj.p>.1,"#00000022","#000000ff")
+		segments(x0=as.numeric(lBplt[,1]),x1=as.numeric(lBplt[,2]),y0=(1:nrow(lBplt))/5+1, col=cOls)
+		text(x = (as.numeric(lBplt[,1])+as.numeric(lBplt[,2]))/2-.5, y = (1:nrow(lBplt))/5+1.1, labels=paste("X =",lBplt[,3],"; adj-p =",lBplt[,4]), xpd=T, col=cOls)
 	}
 	invisible(dev.off())
 }
