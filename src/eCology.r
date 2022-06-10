@@ -12,7 +12,8 @@ argv=(commandArgs(T))
 source("src.r")
 library(deSolve)
 library(PMCMRplus) # v1.9.3
-pT = argv[1]; nAm = argv[2]; tYpe=argv[3]
+source("fdrBH.r")
+pT = argv[1]; nAm = argv[2]; tYpe=argv[3]; pOut = gsub("data","result",pT)
 t0 = read.csv(paste0(pT,nAm,"-log.csv"), header=T)
 pR = read.csv(paste0(pT,nAm,"-pri.csv"), header=T)
 sD = read.csv(paste0(pT,nAm,"-seed.csv"), header=T)
@@ -23,8 +24,8 @@ for(i in 1:as.numeric(argv[4])){
 dMaxSim = nrow(rP[[1]])*as.numeric(argv[4]) # ref max simulation
 
 ##### colour ##### (from SimDataPlot.r)
-cBp = c("#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#e79f00", "#9ad0f3", "#F0E442", "#999999", "#cccccc", "#6633ff", "#00FFCC", "#0066cc", "#000000")
-cBl = c("#E69F0028", "#56B4E944", "#009E7349", "#0072B233", "#D55E0033", "#CC79A733", "#e79f0033", "#9ad0f333", "#F0E44233", "#99999933", "#cccccc33", "#6633ff33", "#00FFCC33", "#0066cc33", "#00000033")
+cBp = palette.colors(palette = "Okabe-Ito", alpha=1, recycle = T)
+cBl = palette.colors(palette = "Okabe-Ito", alpha=.1, recycle = T)
 n=colnames(t0)[-1]
 cOl = data.frame(id=n,cPt=cBp[1:length(n)],cLn=cBl[1:length(n)])
 ptCol = cOl[which(cOl[,1] %in% colnames(t0)[-1]),2]
@@ -35,6 +36,7 @@ ptCol0 = rep(ptCol,ceiling((ncol(t0)-1)/length(ptCol)))
 lnCol0 = rep(lnCol,ceiling((ncol(t0)-1)/length(lnCol)))
 
 ##### categorize ecology ##### (from interactionTypes.r)
+tY0 = c("mutu","cHos","prey","comm","neut","hmED","pred","hmIG","comp")
 tY = c("mutualism","commensal_Host_of_c2","prey/host_of_c2","commensal_of_c2","neutral/no_interaction","harmed_by_c2","predator/parasite_of_c2","harming_c2","competition")
 sEr = function(i1,i2,cT=tY,tP=tYpe){
         rEf = data.frame("P2p"=rep(1:-1,each=3),"p2P"=rep(1:-1,3),"P_is_the"=cT)
@@ -67,7 +69,7 @@ x0 = rep(0,ncol(t0)-1)
 for(i in 2:ncol(t0)){x0[i-1] = median(t0[which(t0[,1]==min(t0[,1])),i])}
 
 ##### plot Time-series #####
-pdf(paste0(pT,"../result/",nAm,"-tsAllRep.pdf"), width=14)
+pdf(paste0(pOut,nAm,"-tsAllRep.pdf"), width=14)
 par(mar=c(5,5,1,12)+.1, xpd=T)
 matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=1.2, col=ptCol0,
         xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")),
@@ -107,11 +109,11 @@ for(i in 2:length(rK)){if(nrow(rK[[i]])>0){
 	tMp = rK[[i]];tMp$replicate = i
 	rkVal = rbind(rkVal,tMp)
 }};colnames(rkVal)[-ncol(rkVal)] = paste(pRrk[,1],pRrk[,2],sep=".")
-write.csv(rkVal,paste0(pT,"../data/",nAm,"-rkValue.csv"), quote=F, row.names=F)
+write.csv(rkVal,paste0(pT,nAm,"-rkValue.csv"), quote=F, row.names=F)
 
 ##### ex: simulation percentage match on data ##### (from SimDataPlot.r)
 dRec[,-1] = dRec[,-1]/dMaxSim
-write.csv(dRec,paste0(pT,"../data/",nAm,"-tsMatch.csv"), quote=F, row.names=F)
+write.csv(dRec,paste0(pT,nAm,"-tsMatch.csv"), quote=F, row.names=F)
 
 ##### ex: Time-series plot #####
 text(min(t0[,1])+diff(range(t0[,1]))*.25,max(t0[,-1]),paste("Number of simulation(s)\nPlotted:",i9, "set(s)"), cex=1.2)
@@ -159,14 +161,14 @@ for(i in 1:length(rP)){
 	}}
 };rm(i)
 eCo$ratio_in_rep = ifelse(eCo$fit_sim==0,0,eCo$count/eCo$fit_sim) # relationship ratio in the top 100 best-fit after double biological simulation-data reality check
-write.csv(eCo,paste0(pT,"../data/",nAm,"-eco.csv"), quote=F, row.names=F)
+write.csv(eCo,paste0(pT,nAm,"-eco.csv"), quote=F, row.names=F)
 
 ##### Kruskal test + posthoc Nemenyi (single-step p-adj) #####
 for(i in 1:nrow(catComb)){
 	i0 = eCo[which(eCo$category1==catComb[i,1] & eCo$category2==catComb[i,2]),]
-	kW = kwAllPairsNemenyiTest(i0$ratio_in_rep~as.factor(i0$c1_is), dist="Chisquare")
+	kW = kwAllPairsNemenyiTest(i0$ratio_in_rep~as.factor(i0$c1_is), dist="Chisquare", p.adjust.method="none")
 	kwSta = as.data.frame(kW$statistic)
-	kwPva = as.data.frame(kW$p.value)
+	kwPva = as.data.frame(fdrBH(kW$p.value))
 	kwS = kwP = c();for(j in 1:ncol(kwSta)){
 		kwS = c(kwS,kwSta[,j])
 		kwP = c(kwP,kwPva[,j])
@@ -175,13 +177,17 @@ for(i in 1:nrow(catComb)){
 		"interaction2"=rep(colnames(kwSta),each=nrow(kwSta)),
 		"chi.sq"=kwS, "adj.p"=kwP)
 	kwTab = kwTab[!is.na(kwTab$adj.p),]
-	write.csv(kwTab,paste0(pT,"../result/",nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".csv"), quote=F, row.names=F)
+	write.csv(kwTab,paste0(pOut,nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".csv"), quote=F, row.names=F)
 
 ## grouped boxplot
-	pdf(paste0(pT,"../result/",nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".pdf"), width=7,height=9)
-	par(mar=c(10,4.5,0,2)+.1, xpd=T)
-	boxplot(i0$ratio_in_rep~gsub("/"," / ",gsub("_"," ",gsub("_c2","",gsub("_of_c2","",i0$c1_is)))),
-	ylim=c(0,1+nrow(kwTab)/5), col="#FFFFFFFF", xlab="", ylab=paste0("ratio of likeliness in ",argv[4]," replicates"), las=2, pch=4, yaxt="n")
+	for(i2 in 1:length(tY)){
+		i0$c1_is[which(i0$c1_is==tY[i2])] = tY0[i2]
+	}
+	pdf(paste0(pOut,nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".pdf"), width=7,height=9)
+	par(mar=c(7,4.5,0,2)+.1, xpd=T)
+	boxplot(i0$ratio_in_rep~i0$c1_is,
+	#boxplot(i0$ratio_in_rep~gsub("/"," / ",gsub("_"," ",gsub("_c2","",gsub("_of_c2","",i0$c1_is)))),
+	ylim=c(0,1+nrow(kwTab)/5), col="#FFFFFFFF", xlab="", ylab=paste0("ratio of likeliness in ",argv[4]," replicates"), las=2, pch=4, yaxt="n", cex.lab=2, cex.axis=2)
 	axis(2,at=seq(0,1,.2),labels=seq(0,1,.2))
 	if(nrow(kwTab)>0){
 		lB = tY[order(tY)]
