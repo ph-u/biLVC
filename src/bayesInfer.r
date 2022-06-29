@@ -28,7 +28,7 @@ sEed=read.csv(paste0(pT,"data/",nM,"-seed.csv"), header=T)
 set.seed(sEed$seed[as.numeric(argv[4])])
 
 ##### MCMC ##### 20220108, 20220331 (+oDe option)
-mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, oDe=tP, lower=rEc[,"min"], upper=rEc[,"max"], niter=as.numeric(argv[3])*10^5, outputlength=1e2, updatecov=50, burninlength=0)
+mcMC = modMCMC(f=mCres, rEc[,"initial"], df=sT, oDe=tP, lower=rEc[,"min"], upper=rEc[,"max"], niter=as.numeric(argv[3])*10^5, outputlength=max(1e2,as.numeric(argv[3])*10^2), updatecov=50, burninlength=0)
 
 ##### summary ##### 20220108
 #save(mcMC, file=paste0(pT,"data/",argv[1],"-",argv[4],"-sam.RData"))
