@@ -2,7 +2,7 @@
 # author: ph-u
 # script: biLVrep.sh
 # desc: multi-replicates Bayesian Inference Lotka-Volterra pipeline
-# in: bash biLVrep.sh [all (0) / prior prep (1) / BI-MCMC (2)] [replicates] [max-iteration (in 10^5)]
+# in: bash biLVrep.sh [prior prep (1) / BI-MCMC (2)] [replicates] [max-iteration (in 10^5)]
 # out: data/*-rec.txt
 # arg: 3
 # date: 20220508 (supersede pipe.sh)
@@ -26,7 +26,7 @@ for rAw in `ls ../raw/*.csv | grep -v "p_" | rev | cut -f 2 -d "." | cut -f 1 -d
 		tP="g";tP0="gLV"
 	fi
 ## time-series process, priors calculation
-	if [[ ${sT} != 2 ]];then
+	if [[ ${sT} == 1 ]];then
 		if [[ ${OSTYPE} == "linux-gnu" ]];then
 			sbatch tsProcess.r ${rAw} ${tP} ${rP} `pwd` 1> ../data/${rAw}-tsP.txt &
 		else
@@ -34,7 +34,7 @@ for rAw in `ls ../raw/*.csv | grep -v "p_" | rev | cut -f 2 -d "." | cut -f 1 -d
 		fi
 	fi
 ## Bayesian MCMC sampling with independent replicates
-	if [[ ${sT} != 1 ]];then
+	if [[ ${sT} == 2 ]];then
 		echo -e "${rAw}: eq ${tP0}, rep ${rP} (`date`)"
 		for rEp in `seq 1 ${rP}`;do # replicates
 			if [[ ${OSTYPE} == "linux-gnu" ]];then
