@@ -13,7 +13,7 @@
 #SBATCH --ntasks=1
 #SBATCH --time=12:00:00
 #SBATCH --mail-type=NONE
-#SBATCH --no-requeue
+#SBATCH --requeue
 #SBATCH -p skylake-himem
 
 argv=(commandArgs(T))
