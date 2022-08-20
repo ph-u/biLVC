@@ -5,14 +5,23 @@
 # in: Rscript eCology.r [path/to/data/] [time_series_basename] [LVC/gLV] [replicates]
 # out: result/*-{eco,tsMatch,kwPairs_[c1]_[c2]}.csv, result/*-{kwPairs_[c1]_[c2],tsAllRep}.pdf
 # arg: 4
-# date: 20220508 (supersede interactionTypes.r)
+# date: 20220508 (supersede interactionTypes.r), 20220820 (CSD3 adaptation)
+
+#SBATCH -J ecolAna
+#SBATCH -A WELCH-SL3-CPU
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=12:00:00
+#SBATCH --mail-type=NONE
+#SBATCH --requeue
+#SBATCH -p skylake-himem
 
 ##### env #####
 argv=(commandArgs(T))
 source("src.r")
 library(deSolve)
-library(PMCMRplus) # v1.9.3
-source("fdrBH.r")
+#library(PMCMRplus) # v1.9.3
+#source("fdrBH.r")
 pT = argv[1]; nAm = argv[2]; tYpe=argv[3]; pOut = gsub("data","result",pT)
 t0 = read.csv(paste0(pT,nAm,"-log.csv"), header=T)
 pR = read.csv(paste0(pT,nAm,"-pri.csv"), header=T)
@@ -164,41 +173,41 @@ eCo$ratio_in_rep = ifelse(eCo$fit_sim==0,0,eCo$count/eCo$fit_sim) # relationship
 write.csv(eCo,paste0(pT,nAm,"-eco.csv"), quote=F, row.names=F)
 
 ##### Kruskal test + posthoc Nemenyi (single-step p-adj) #####
-for(i in 1:nrow(catComb)){
-	i0 = eCo[which(eCo$category1==catComb[i,1] & eCo$category2==catComb[i,2]),]
-	kW = kwAllPairsNemenyiTest(i0$ratio_in_rep~as.factor(i0$c1_is), dist="Chisquare", p.adjust.method="none")
-	kwSta = as.data.frame(kW$statistic)
-	kwPva = as.data.frame(fdrBH(kW$p.value))
-	kwS = kwP = c();for(j in 1:ncol(kwSta)){
-		kwS = c(kwS,kwSta[,j])
-		kwP = c(kwP,kwPva[,j])
-	};kwTab = data.frame(
-		"interaction1"=rep(row.names(kwSta),ncol(kwSta)),
-		"interaction2"=rep(colnames(kwSta),each=nrow(kwSta)),
-		"chi.sq"=kwS, "adj.p"=kwP)
-	kwTab = kwTab[!is.na(kwTab$adj.p),]
-	write.csv(kwTab,paste0(pOut,nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".csv"), quote=F, row.names=F)
+#for(i in 1:nrow(catComb)){
+#	i0 = eCo[which(eCo$category1==catComb[i,1] & eCo$category2==catComb[i,2]),]
+#	kW = kwAllPairsNemenyiTest(i0$ratio_in_rep~as.factor(i0$c1_is), dist="Chisquare", p.adjust.method="none")
+#	kwSta = as.data.frame(kW$statistic)
+#	kwPva = as.data.frame(fdrBH(kW$p.value))
+#	kwS = kwP = c();for(j in 1:ncol(kwSta)){
+#		kwS = c(kwS,kwSta[,j])
+#		kwP = c(kwP,kwPva[,j])
+#	};kwTab = data.frame(
+#		"interaction1"=rep(row.names(kwSta),ncol(kwSta)),
+#		"interaction2"=rep(colnames(kwSta),each=nrow(kwSta)),
+#		"chi.sq"=kwS, "adj.p"=kwP)
+#	kwTab = kwTab[!is.na(kwTab$adj.p),]
+#	write.csv(kwTab,paste0(pOut,nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".csv"), quote=F, row.names=F)
 
 ## grouped boxplot
-	for(i2 in 1:length(tY)){
-		i0$c1_is[which(i0$c1_is==tY[i2])] = tY0[i2]
-	}
-	pdf(paste0(pOut,nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".pdf"), width=7,height=9)
-	par(mar=c(7,4.5,0,2)+.1, xpd=T)
-	boxplot(i0$ratio_in_rep~i0$c1_is,
+#	for(i2 in 1:length(tY)){
+#		i0$c1_is[which(i0$c1_is==tY[i2])] = tY0[i2]
+#	}
+#	pdf(paste0(pOut,nAm,"-kwPairs_",catComb[i,1],"_",catComb[i,2],".pdf"), width=7,height=9)
+#	par(mar=c(7,4.5,0,2)+.1, xpd=T)
+#	boxplot(i0$ratio_in_rep~i0$c1_is,
 	#boxplot(i0$ratio_in_rep~gsub("/"," / ",gsub("_"," ",gsub("_c2","",gsub("_of_c2","",i0$c1_is)))),
-	ylim=c(0,1+nrow(kwTab)/5), col="#FFFFFFFF", xlab="", ylab=paste0("ratio of likeliness in ",argv[4]," replicates"), las=2, pch=4, yaxt="n", cex.lab=2, cex.axis=2)
-	axis(2,at=seq(0,1,.2),labels=seq(0,1,.2))
-	if(nrow(kwTab)>0){
-		lB = tY[order(tY)]
-		lBplt = kwTab
-		for(i2 in 1:length(lB)){for(i1 in 1:2){lBplt[which(lBplt[,i1]==lB[i2]),i1]=i2}}
-		lBplt$chi.sq = round(lBplt$chi.sq,2)
-		lBplt$adj.p = ifelse(lBplt$adj.p<.001,"<<0.01",round(lBplt$adj.p,3))
-		cOls = ifelse(lBplt$adj.p>.1,"#00000022","#000000ff")
-		segments(x0=as.numeric(lBplt[,1]),x1=as.numeric(lBplt[,2]),y0=(1:nrow(lBplt))/5+1, col=cOls)
-		text(x = (as.numeric(lBplt[,1])+as.numeric(lBplt[,2]))/2-.5, y = (1:nrow(lBplt))/5+1.1, labels=paste("X =",lBplt[,3],"; adj-p =",lBplt[,4]), xpd=T, col=cOls)
-	}
-	invisible(dev.off())
-}
+#	ylim=c(0,1+nrow(kwTab)/5), col="#FFFFFFFF", xlab="", ylab=paste0("ratio of likeliness in ",argv[4]," replicates"), las=2, pch=4, yaxt="n", cex.lab=2, cex.axis=2)
+#	axis(2,at=seq(0,1,.2),labels=seq(0,1,.2))
+#	if(nrow(kwTab)>0){
+#		lB = tY[order(tY)]
+#		lBplt = kwTab
+#		for(i2 in 1:length(lB)){for(i1 in 1:2){lBplt[which(lBplt[,i1]==lB[i2]),i1]=i2}}
+#		lBplt$chi.sq = round(lBplt$chi.sq,2)
+#		lBplt$adj.p = ifelse(lBplt$adj.p<.001,"<<0.01",round(lBplt$adj.p,3))
+#		cOls = ifelse(lBplt$adj.p>.1,"#00000022","#000000ff")
+#		segments(x0=as.numeric(lBplt[,1]),x1=as.numeric(lBplt[,2]),y0=(1:nrow(lBplt))/5+1, col=cOls)
+#		text(x = (as.numeric(lBplt[,1])+as.numeric(lBplt[,2]))/2-.5, y = (1:nrow(lBplt))/5+1.1, labels=paste("X =",lBplt[,3],"; adj-p =",lBplt[,4]), xpd=T, col=cOls)
+#	}
+#	invisible(dev.off())
+#}
 

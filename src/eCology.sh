@@ -15,7 +15,11 @@ for i in `ls ${pT}/*-log.csv`;do
 	tYpe=`echo -e ${bNam} | rev | cut -f 1 -d "_" | rev`
 	rEp=`ls ${pT}/${bNam}*-sam.csv | wc -l`
 	echo -e "analyzing: ${bNam} - (`date`)"
-	Rscript eCology.r ${pT}/ ${bNam} ${tYpe} ${rEp}
+	if [[ ${OSTYPE} == "linux-gnu"  ]];then # 20220820: CSD3 adaptation
+		sbatch eCology.r ${pT}/ ${bNam} ${tYpe} ${rEp} &
+	else
+		Rscript eCology.r ${pT}/ ${bNam} ${tYpe} ${rEp}
+	fi
 done
 echo -e "All done: `date`"
 exit
