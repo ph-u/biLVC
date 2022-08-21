@@ -11,7 +11,7 @@
 #SBATCH -A WELCH-SL3-CPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --time=12:00:00
+#SBATCH --time=00:10:00
 #SBATCH --mail-type=NONE
 #SBATCH --requeue
 #SBATCH -p skylake-himem
@@ -33,21 +33,17 @@ for(i in 1:as.numeric(argv[4])){
 dMaxSim = nrow(rP[[1]])*as.numeric(argv[4]) # ref max simulation
 
 ##### colour ##### (from SimDataPlot.r)
+n=colnames(t0)[-1]
 if(R.Version()$major>=4){
 	cBp = palette.colors(palette = "Okabe-Ito", alpha=1, recycle = T)
 	cBl = palette.colors(palette = "Okabe-Ito", alpha=.1, recycle = T)
 }else{
 	cBp = c("#000000FF","#E69F00FF","#56B4E9FF","#009E73FF","#F0E442FF","#0072B2FF","#D55E00FF","#CC79A7FF","#999999FF")
+	cBp = rep(cBp,ceiling(length(n)/length(cBp)))[1:length(n)]
 	cBl = paste0(substr(cBp,1,7),"1A", sep="")
 }
-n=colnames(t0)[-1]
-cOl = data.frame(id=n,cPt=cBp[1:length(n)],cLn=cBl[1:length(n)])
-ptCol = cOl[which(cOl[,1] %in% colnames(t0)[-1]),2]
-lnCol = cOl[which(cOl[,1] %in% colnames(t0)[-1]),3]
 if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"}
 if(argv[4]=="LVC"){oDe="c"}else{oDe="g"}
-ptCol0 = rep(ptCol,ceiling((ncol(t0)-1)/length(ptCol)))
-lnCol0 = rep(lnCol,ceiling((ncol(t0)-1)/length(lnCol)))
 
 ##### categorize ecology ##### (from interactionTypes.r)
 tY0 = c("mutu","cHos","prey","comm","neut","hmED","pred","hmIG","comp")
@@ -85,10 +81,10 @@ for(i in 2:ncol(t0)){x0[i-1] = median(t0[which(t0[,1]==min(t0[,1])),i])}
 ##### plot Time-series #####
 pdf(paste0(pOut,nAm,"-tsAllRep.pdf"), width=14)
 par(mar=c(5,5,1,12)+.1, xpd=T)
-matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=1.2, col=ptCol0,
+matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=1.2, col=cBp,
         xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")),
         ylab=yLab, cex.axis=2, cex.lab=2)
-legend("topright", inset=c(-.19,0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = ptCol0)
+legend("topright", inset=c(-.19,0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = cBp)
 
 i9=0;for(i1 in 1:length(rP)){
 	set.seed(sD$seed[i1])
@@ -97,7 +93,7 @@ i9=0;for(i1 in 1:length(rP)){
 	        for(i0 in 2:ncol(a0)){a0[,i0] = ifelse(a0[,i0]>150 | a0[,i0]<0,-100,a0[,i0])};rm(i0)
 		a0[is.na(a0)] = -100
 		if(any(a0==-100)){pRM = c(pRM,i)}else{
-			matplot(a0[,1],a0[,-1], type="l", add=T, col=lnCol0, lty=(1:(ncol(t0)-1))%%5+1)
+			matplot(a0[,1],a0[,-1], type="l", add=T, lty=(1:(ncol(t0)-1))%%5+1, col=cBl)
 			i9=i9+1
 		}
 ## Simulation-data match count
