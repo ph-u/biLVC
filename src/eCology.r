@@ -33,8 +33,13 @@ for(i in 1:as.numeric(argv[4])){
 dMaxSim = nrow(rP[[1]])*as.numeric(argv[4]) # ref max simulation
 
 ##### colour ##### (from SimDataPlot.r)
-cBp = palette.colors(palette = "Okabe-Ito", alpha=1, recycle = T)
-cBl = palette.colors(palette = "Okabe-Ito", alpha=.1, recycle = T)
+if(R.Version()$major>=4){
+	cBp = palette.colors(palette = "Okabe-Ito", alpha=1, recycle = T)
+	cBl = palette.colors(palette = "Okabe-Ito", alpha=.1, recycle = T)
+}else{
+	cBp = c("#000000FF","#E69F00FF","#56B4E9FF","#009E73FF","#F0E442FF","#0072B2FF","#D55E00FF","#CC79A7FF","#999999FF")
+	cBl = paste0(substr(cBp,1,7),"1A", sep="")
+}
 n=colnames(t0)[-1]
 cOl = data.frame(id=n,cPt=cBp[1:length(n)],cLn=cBl[1:length(n)])
 ptCol = cOl[which(cOl[,1] %in% colnames(t0)[-1]),2]
