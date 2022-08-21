@@ -40,7 +40,7 @@ if(R.Version()$major>=4){
 }else{
 	cBp = c("#000000FF","#E69F00FF","#56B4E9FF","#009E73FF","#F0E442FF","#0072B2FF","#D55E00FF","#CC79A7FF","#999999FF")
 	cBp = rep(cBp,ceiling(length(n)/length(cBp)))[1:length(n)]
-	cBl = paste0(substr(cBp,1,7),"1A", sep="")
+	cBl = paste0(substr(cBp,1,7),"33", sep="")
 }
 if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"}
 if(argv[4]=="LVC"){oDe="c"}else{oDe="g"}
