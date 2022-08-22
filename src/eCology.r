@@ -49,7 +49,7 @@ if(R.Version()$major>=4){ # set plot colours
 tY0 = c("mutu","cHos","prey","comm","neut","hmED","pred","hmIG","comp")
 tY = c("mutualism","commensal_Host_of_c2","prey/host_of_c2","commensal_of_c2","neutral/no_interaction","harmed_by_c2","predator/parasite_of_c2","harming_c2","competition")
 sEr = function(i1,i2,cT=tY,tP=tYpe){
-        rEf = data.frame("P2p"=rep(1:-1,each=3),"p2P"=rep(1:-1,3),"P_is_the"=cT)
+        rEf = data.frame("P2p"=rep(1:-1,each=3),"p2P"=rep(1:-1,3),"P_is_the"=cT, stringsAsFactors=F)
         if(tP=="LVC"){i1 = -i1;i2 = -i2}
         i1 = ifelse(i1==0,0,ifelse(i1>0,1,-1))
         i2 = ifelse(i2==0,0,ifelse(i2>0,1,-1))
@@ -79,6 +79,10 @@ legMx = matrix(1:prod(nDim), nrow=nDim[1], ncol=nDim[2], byrow=F)
 legBd = rep("#000000ff", prod(nDim))
 legBd[legMx>(ncol(t0)-1)] = legMx[legMx>(ncol(t0)-1)] = NA
 
+##### set parameter value bin #####
+paraBin = as.data.frame(matrix(nr=0,nc=ncol(rP[[1]])+1))
+colnames(paraBin) = c("replicate",colnames(rP[[1]]))
+
 ##### plot Time-series #####
 pdf(paste0(pOut,nAm,"-tsAllRep.pdf"), width=16)
 par(mar=c(14,5,1,3)+.1, xpd=T) #par(mar=c(5,5,1,12)+.1, xpd=T)
@@ -87,90 +91,99 @@ matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=2, col=cBp,
         ylab=yLab, cex.axis=2, cex.lab=2)
 #legend("topright", inset=c(-.19,0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = cBp)
 
-i9=0;for(i1 in 1:length(rP)){
+for(i1 in 1:length(rP)){
 	set.seed(sD$seed[i1])
-	pRM = c();for(i in 1:nrow(rP[[i1]])){ tK = 0
+	for(i in 1:nrow(rP[[i1]])){ tK = 0
 		a0 = solveLV(x0, as.numeric(rP[[i1]][i,]), range(t0[,1]), oDe)
 		a1 = (dMin[,-1]<=a0[-1,-1]) & (a0[-1,-1]<=dMax[,-1]); a1[is.na(a1)] = 0 # Simulation-data match count (20220822)
 		if(all(colSums(a1)==nrow(a1))){tK = 1
 			if(nrow(a1)>2){ for(i0 in 1:(nrow(a1)-1)){
 				if(any(colSums(a1[i0:(i0+1),-1])<2)){tK = 0;break}
 			}}}
-		if(tK>0){ i9=i9+1
+		if(tK>0){
+			paraBin[nrow(paraBin)+1,] = c(i1,as.numeric(rP[[i1]][i,]))
 			matplot(a0[,1],a0[,-1], type="l", add=T, lty=(1:(ncol(t0)-1))%%5+1, col=cBl)
-		}else{pRM = c(pRM,i)}
+		}
 		dRec[,-1] = dRec[,-1] + a1
-        };if(length(pRM)>0){rP[[i1]] = rP[[i1]][-pRM,]}
-	write.csv(rP[[i1]],paste0(pT,nAm,"-",i,"-filter.csv"), quote=F, row.names=F)
-	rK[[i1]] = rP[[i1]][,which(pR[,2] == "r" | pR[,2] == "k")]
-	rP[[i1]] = rP[[i1]][,which(pR[,2] != "r" & pR[,2] != "k")]
+        }#;rP[[i1]] = paraBin[which(paraBin$replicate==i1),-1]
+#	rK[[i1]] = rP[[i1]][,which(pR[,2] == "r" | pR[,2] == "k")]
+#	rP[[i1]] = rP[[i1]][,which(pR[,2] != "r" & pR[,2] != "k")]
 };rm(i,i1)
-pRrk = pR[which(pR[,2] == "r" | pR[,2] == "k"),]
-pR = pR[which(pR[,2] != "r" & pR[,2] != "k"),]
+legend("bottom", inset=c(0,-.75), legend = colnames(t0)[-1][legMx], title=paste("Taxonomic Category -",nrow(paraBin),"simulation set(s)"), border=NA, xpd=T, cex=2, ncol=nDim[2], pch = c((1:(ncol(t0)-1))%%25,NA), lty=c((1:(ncol(t0)-1))%%5+1,NA), lwd=2, col = cBp)
+invisible(dev.off())
+
+write.csv(paraBin,paste0(pT,nAm,"-filter.csv"), quote=F, row.names=F)
+#pRrk = pR[which(pR[,2] == "r" | pR[,2] == "k"),]
+#pR = pR[which(pR[,2] != "r" & pR[,2] != "k"),]
 dRec[,-1] = dRec[,-1]/dMaxSim # data-matching ratio (from SimDataPlot.r)
 write.csv(dRec,paste0(pT,nAm,"-tsMatch.csv"), quote=F, row.names=F)
 
 ##### ex: growth rate, carrying capacity #####
-if(nrow(rK[[1]])>0){
-	rkVal = rK[[1]]
-	rkVal$replicate = 1
-}else{
-	rkVal = as.data.frame(matrix(0,nr=0,nc=nrow(pR)+1))
-	colnames(rkVal)[ncol(rkVal)]="replicate"
-}
-for(i in 2:length(rK)){if(nrow(rK[[i]])>0){
-	tMp = rK[[i]];tMp$replicate = i
-	rkVal = rbind(rkVal,tMp)
-}};colnames(rkVal)[-ncol(rkVal)] = paste(pRrk[,1],pRrk[,2],sep=".")
+rK = which(pR[,2] %in% c("r","k"))
+rkVal = paraBin[,c(1,1+rK)]
+colnames(rkVal)[-1] = paste(pR[rK,1],pR[rK,2],sep=".")
+#if(nrow(rK[[1]])>0){
+#	rkVal = rK[[1]]
+#	rkVal$replicate = 1
+#}else{
+#	rkVal = as.data.frame(matrix(0,nr=0,nc=nrow(pR)+1))
+#	colnames(rkVal)[ncol(rkVal)]="replicate"
+#}
+#for(i in 2:length(rK)){if(nrow(rK[[i]])>0){
+#	tMp = rK[[i]];tMp$replicate = i
+#	rkVal = rbind(rkVal,tMp)
+#}};colnames(rkVal)[-ncol(rkVal)] = paste(pRrk[,1],pRrk[,2],sep=".")
 write.csv(rkVal,paste0(pT,nAm,"-rkValue.csv"), quote=F, row.names=F)
 
-##### ex: Time-series plot #####
-#text(min(t0[,1])+diff(range(t0[,1]))*.15,max(t0[,-1]*.95),paste("Number of simulation(s) plotted:",i9, "set(s)"), cex=1.2)
-legend("bottom", inset=c(0,-.75), legend = colnames(t0)[-1][legMx], title=paste("Taxonomic Category -",i9,"simulation set(s)"), border=NA, xpd=T, cex=2, ncol=nDim[2], pch = c((1:(ncol(t0)-1))%%25,NA), lty=c((1:(ncol(t0)-1))%%5+1,NA), lwd=2, col = cBp)
-invisible(dev.off())
-
 ##### interaction matrix ##### (from interactionTypes.r)
-n = unique(pR[,1])
+n = as.character(unique(pR[,1]))
+iNt = paraBin[,-c(1,1+rK)]
 if(tYpe=="LVC"){
-        a = as.data.frame(matrix(1, nr=length(n), nc=length(n)))
+        a = as.data.frame(matrix(1, nr=length(n), nc=length(n)), stringsAsFactors=F)
         i0=1
         for(i in 1:nrow(a)){ for(j in 1:ncol(a)){if(i!=j){
-                a[i,j] = colnames(rP[[1]])[i0]
+                a[i,j] = colnames(iNt)[i0]
                 i0=i0+1
 }}}}else{
-        a = as.data.frame(t(matrix(colnames(rP[[1]]), nr=length(n), nc=length(n))))
+        a = as.data.frame(t(matrix(colnames(iNt), nr=length(n), nc=length(n))), stringsAsFactors=F)
 };row.names(a) = colnames(a) = n
 
 ##### category pairwise combinations #####
-catComb = as.data.frame(matrix(NA,nr=choose(length(n),2)+ifelse(tYpe=="LVC",0,length(n)), nc=2))
-nR=i=j=1;repeat{
-	if(ifelse(tYpe=="LVC",i<j,i<=j)){catComb[nR,] = c(n[i],n[j]);nR = nR+1}
-	j = j+1
-	if(j>length(n)){j=1;i = i+1}
-	if(nR>nrow(catComb)){break}
-};rm(nR,i,j)
+catComb = data.frame(c1=rep(n,each=length(n)),c2=n,c3=NA, stringsAsFactors=F)
+for(i in 1:nrow(catComb)){catComb$c3[i] = paste(catComb[i,-3][order(catComb[i,-3])],collapse=".")}
+catComb = catComb[!duplicated(catComb$c3),-3]
+if(tYpe=="LVC"){catComb = catComb[which(catComb$c1!=catComb$c2),]}
+#catComb = as.data.frame(matrix(NA,nr=choose(length(n),2)+ifelse(tYpe=="LVC",0,length(n)), nc=2))
+#nR=i=j=1;repeat{
+#	if(ifelse(tYpe=="LVC",i<j,i<=j)){catComb[nR,] = c(n[i],n[j]);nR = nR+1}
+#	j = j+1
+#	if(j>length(n)){j=1;i = i+1}
+#	if(nR>nrow(catComb)){break}
+#};rm(nR,i,j)
 
 ##### interaction categorization result collector #####
-eCo = as.data.frame(matrix(0,nr=(choose(length(n),2)+ifelse(tYpe=="LVC",0,length(n)))*length(rP)*length(tY),nc=7))
+rEp = unique(paraBin$replicate)
+eCo = as.data.frame(matrix(0,nr=nrow(catComb)*length(rEp)*length(tY), nc=7), stringsAsFactors=F)
+#eCo = as.data.frame(matrix(0,nr=(choose(length(n),2)+ifelse(tYpe=="LVC",0,length(n)))*length(rP)*length(tY),nc=7))
 colnames(eCo) = c(paste0("category",1:2),"replicate","c1_is","count","fit_sim","ratio_in_rep")
-eCo$replicate = rep(1:length(rP),each=nrow(eCo)/length(rP))
+eCo$replicate = rep(rEp,each=nrow(eCo)/length(rEp))#rep(1:length(rP),each=nrow(eCo)/length(rP))
 eCo$c1_is = rep(tY,nrow(eCo)/length(tY))
-eCo$category1 = rep(rep(catComb[,1],each=length(tY)),length(rP))
-eCo$category2 = rep(rep(catComb[,2],each=length(tY)),length(rP))
+for(i in 1:2){eCo[,i] = rep(rep(catComb[,i],each=length(tY)),length(rEp))}
 
 ##### map interactions #####
-for(i in 1:length(rP)){
-	eCo$fit_sim[which(eCo$replicate==i)] = nrow(rP[[i]])
+for(i in 1:length(rEp)){ #for(i in 1:length(rP)){
+	a0 = paraBin[which(paraBin$replicate==rEp[i]),-c(1,1+rK)]
+	eCo$fit_sim[which(eCo$replicate==rEp[i])] = nrow(a0) #nrow(rP[[i]])
 	for(c2 in 1:length(n)){ for(c1 in 1:length(n)){
-		if(ifelse(tYpe=="LVC",c2>c1,c2>=c1) & nrow(rP[[i]])>0){
-			cAt = table(sEr(rP[[i]][,a[c2,c1]],rP[[i]][,a[c1,c2]])) # a[row,col] - "col" (P) affect population of "row" (p)
+		if(ifelse(tYpe=="LVC",c2>c1,c2>=c1)){
+			cAt = table(sEr(a0[,a[c2,c1]],a0[,a[c1,c2]])) # a[row,col] - "col" (P) affect population of "row" (p)
 			for(i0 in 1:length(cAt)){
-				eCo$count[which(eCo$category1==colnames(a)[c1] & eCo$category2==colnames(a)[c2] & eCo$replicate==i & eCo$c1_is==names(cAt)[i0])] = cAt[i0]
+				eCo$count[which(eCo$category1==colnames(a)[c1] & eCo$category2==colnames(a)[c2] & eCo$replicate==rEp[i] & eCo$c1_is==names(cAt)[i0])] = cAt[i0]
 }
 		}
 	}}
 };rm(i)
-eCo$ratio_in_rep = ifelse(eCo$fit_sim==0,0,eCo$count/eCo$fit_sim) # relationship ratio in the top 100 best-fit after double biological simulation-data reality check
+eCo$ratio_in_rep = eCo$count/eCo$fit_sim # relationship ratio in the top 100 best-fit after double biological simulation-data reality check
 write.csv(eCo,paste0(pT,nAm,"-eco.csv"), quote=F, row.names=F)
 
 ##### Kruskal test + posthoc Nemenyi (single-step p-adj) #####
