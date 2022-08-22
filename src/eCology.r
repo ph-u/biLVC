@@ -78,13 +78,19 @@ oDe = ifelse(tYpe=="LVC","c","g")
 x0 = rep(0,ncol(t0)-1)
 for(i in 2:ncol(t0)){x0[i-1] = median(t0[which(t0[,1]==min(t0[,1])),i])}
 
+##### plot legend format ##### https://stackoverflow.com/questions/39552682/base-r-horizontal-legend-with-multiple-rows
+nDim = 3;nDim = c(nDim, ceiling((ncol(t0)-1)/nDim))
+legMx = matrix(1:prod(nDim), nrow=nDim[1], ncol=nDim[2], byrow=F)
+legBd = rep("#000000ff", prod(nDim))
+legBd[legMx>(ncol(t0)-1)] = legMx[legMx>(ncol(t0)-1)] = NA
+
 ##### plot Time-series #####
-pdf(paste0(pOut,nAm,"-tsAllRep.pdf"), width=14)
-par(mar=c(5,5,1,12)+.1, xpd=T)
-matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=1.2, col=cBp,
+pdf(paste0(pOut,nAm,"-tsAllRep.pdf"), width=16)
+par(mar=c(14,5,1,3)+.1, xpd=T) #par(mar=c(5,5,1,12)+.1, xpd=T)
+matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=2, col=cBp,
         xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")),
         ylab=yLab, cex.axis=2, cex.lab=2)
-legend("topright", inset=c(-.19,0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = cBp)
+#legend("topright", inset=c(-.19,0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = cBp)
 
 i9=0;for(i1 in 1:length(rP)){
 	set.seed(sD$seed[i1])
@@ -126,7 +132,8 @@ dRec[,-1] = dRec[,-1]/dMaxSim
 write.csv(dRec,paste0(pT,nAm,"-tsMatch.csv"), quote=F, row.names=F)
 
 ##### ex: Time-series plot #####
-text(min(t0[,1])+diff(range(t0[,1]))*.25,max(t0[,-1]),paste("Number of simulation(s)\nPlotted:",i9, "set(s)"), cex=1.2)
+#text(min(t0[,1])+diff(range(t0[,1]))*.15,max(t0[,-1]*.95),paste("Number of simulation(s) plotted:",i9, "set(s)"), cex=1.2)
+legend("bottom", inset=c(0,-.75), legend = colnames(t0)[-1][legMx], title=paste("Taxonomic Category -",i9,"simulation set(s)"), border=NA, xpd=T, cex=2, ncol=nDim[2], pch = c((1:(ncol(t0)-1))%%25,NA), lty=c((1:(ncol(t0)-1))%%5+1,NA), lwd=2, col = cBp)
 invisible(dev.off())
 
 ##### interaction matrix ##### (from interactionTypes.r)
