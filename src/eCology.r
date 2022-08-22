@@ -22,19 +22,21 @@ source("src.r")
 library(deSolve)
 #library(PMCMRplus) # v1.9.3
 #source("fdrBH.r")
-pT = argv[1]; nAm = argv[2]; tYpe=argv[3]; pOut = gsub("data","result",pT)
-t0 = read.csv(paste0(pT,nAm,"-log.csv"), header=T)
-pR = read.csv(paste0(pT,nAm,"-pri.csv"), header=T)
-sD = read.csv(paste0(pT,nAm,"-seed.csv"), header=T)
-rP = rK = vector(mode="list", length=as.numeric(argv[4]))
+pT = argv[1]; nAm = argv[2]; tYpe=argv[3]; pOut = gsub("data","result",pT) # path links
+t0 = read.csv(paste0(pT,nAm,"-log.csv"), header=T) # processed time-series data
+pR = read.csv(paste0(pT,nAm,"-pri.csv"), header=T) # prior list
+sD = read.csv(paste0(pT,nAm,"-seed.csv"), header=T) # seed list
+rP = rK = vector(mode="list", length=as.numeric(argv[4])) # bin for simulated coefficients
 for(i in 1:as.numeric(argv[4])){
 	rP[[i]] = read.csv(paste0(pT,nAm,"-",i,"-sam.csv"), header=T)
 }
 dMaxSim = nrow(rP[[1]])*as.numeric(argv[4]) # ref max simulation
-
-##### colour ##### (from SimDataPlot.r)
-n=colnames(t0)[-1]
-if(R.Version()$major>=4){
+n=colnames(t0)[-1] # list of categories name
+if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"} # y-axis label
+oDe = ifelse(tYpe=="LVC","c","g") # equation type
+x0 = rep(0,ncol(t0)-1) # initiate population vector
+for(i in 2:ncol(t0)){x0[i-1] = median(t0[which(t0[,1]==min(t0[,1])),i])} # set populations (20220411)
+if(R.Version()$major>=4){ # set plot colours
 	cBp = palette.colors(palette = "Okabe-Ito", alpha=1, recycle = T)
 	cBl = palette.colors(palette = "Okabe-Ito", alpha=.1, recycle = T)
 }else{
@@ -42,8 +44,6 @@ if(R.Version()$major>=4){
 	cBp = rep(cBp,ceiling(length(n)/length(cBp)))[1:length(n)]
 	cBl = paste0(substr(cBp,1,7),"33", sep="")
 }
-if(any(t0[,-1]>30)){yLab="percentage presence [%]"}else{yLab="log_e(y+1) [CFU/mL]"}
-if(argv[4]=="LVC"){oDe="c"}else{oDe="g"}
 
 ##### categorize ecology ##### (from interactionTypes.r)
 tY0 = c("mutu","cHos","prey","comm","neut","hmED","pred","hmIG","comp")
@@ -59,7 +59,7 @@ sEr = function(i1,i2,cT=tY,tP=tYpe){
 }
 
 ##### get simulation match range ##### (from SimDataPlot.r)
-acRatio = .1
+acRatio = .25
 tUq = unique(t0[,1])
 tUq = tUq[order(tUq)[-1]] ## accending order safety net
 dMin = dMax = dRec = as.data.frame(matrix(0,nr=length(tUq),nc=ncol(t0)))
@@ -69,14 +69,9 @@ for(i in 1:length(tUq)){
         d = t0[which(t0[,1]==tUq[i]),]
         for(j in 2:ncol(t0)){
                 d0 = range(d[,j])
-                dMin[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),min(d0[1]*(1-acRatio),d0[1]-1),max(d0[1]-diff(d0)/2,0))
-                dMax[i,j] = ifelse(length(t0[,1])==length(unique(t0[,1])),max(d0[2]*(1+acRatio),d0[2]+1),d0[2]+diff(d0)/2)
+                dMin[i,j] = max(0, d0[1]-ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)/2))
+                dMax[i,j] = min(100, d0[1]+ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)/2))
 }}
-
-##### exclude non-fitting simulations ##### 20220411
-oDe = ifelse(tYpe=="LVC","c","g")
-x0 = rep(0,ncol(t0)-1)
-for(i in 2:ncol(t0)){x0[i-1] = median(t0[which(t0[,1]==min(t0[,1])),i])}
 
 ##### plot legend format ##### https://stackoverflow.com/questions/39552682/base-r-horizontal-legend-with-multiple-rows
 nDim = 3;nDim = c(nDim, ceiling((ncol(t0)-1)/nDim))
@@ -94,24 +89,26 @@ matplot(t0[,1],t0[,-1], type="p", pch=(1:(ncol(t0)-1))%%25, cex=2, col=cBp,
 
 i9=0;for(i1 in 1:length(rP)){
 	set.seed(sD$seed[i1])
-	pRM = c();for(i in 1:nrow(rP[[i1]])){
+	pRM = c();for(i in 1:nrow(rP[[i1]])){ tK = 0
 		a0 = solveLV(x0, as.numeric(rP[[i1]][i,]), range(t0[,1]), oDe)
-	        for(i0 in 2:ncol(a0)){a0[,i0] = ifelse(a0[,i0]>150 | a0[,i0]<0,-100,a0[,i0])};rm(i0)
-		a0[is.na(a0)] = -100
-		if(any(a0==-100)){pRM = c(pRM,i)}else{
+		a1 = (dMin[,-1]<=a0[-1,-1]) & (a0[-1,-1]<=dMax[,-1]); a1[is.na(a1)] = 0 # Simulation-data match count (20220822)
+		if(all(colSums(a1)==nrow(a1))){tK = 1
+			if(nrow(a1)>2){ for(i0 in 1:(nrow(a1)-1)){
+				if(any(colSums(a1[i0:(i0+1),-1])<2)){tK = 0;break}
+			}}}
+		if(tK>0){ i9=i9+1
 			matplot(a0[,1],a0[,-1], type="l", add=T, lty=(1:(ncol(t0)-1))%%5+1, col=cBl)
-			i9=i9+1
-		}
-## Simulation-data match count
-		for(j in 1:length(tUq)){for(k in 2:ncol(t0)){
-			dRec[j,k] = dRec[j,k] + (a0[j,k]>=dMin[j,k] & a0[j,k]<=dMax[j,k])
-
-        }}};if(length(pRM)>0){rP[[i1]]=rP[[i1]][-pRM,]}
+		}else{pRM = c(pRM,i)}
+		dRec[,-1] = dRec[,-1] + a1
+        };if(length(pRM)>0){rP[[i1]] = rP[[i1]][-pRM,]}
+	write.csv(rP[[i1]],paste0(pT,nAm,"-",i,"-filter.csv"), quote=F, row.names=F)
 	rK[[i1]] = rP[[i1]][,which(pR[,2] == "r" | pR[,2] == "k")]
 	rP[[i1]] = rP[[i1]][,which(pR[,2] != "r" & pR[,2] != "k")]
 };rm(i,i1)
 pRrk = pR[which(pR[,2] == "r" | pR[,2] == "k"),]
 pR = pR[which(pR[,2] != "r" & pR[,2] != "k"),]
+dRec[,-1] = dRec[,-1]/dMaxSim # data-matching ratio (from SimDataPlot.r)
+write.csv(dRec,paste0(pT,nAm,"-tsMatch.csv"), quote=F, row.names=F)
 
 ##### ex: growth rate, carrying capacity #####
 if(nrow(rK[[1]])>0){
@@ -126,10 +123,6 @@ for(i in 2:length(rK)){if(nrow(rK[[i]])>0){
 	rkVal = rbind(rkVal,tMp)
 }};colnames(rkVal)[-ncol(rkVal)] = paste(pRrk[,1],pRrk[,2],sep=".")
 write.csv(rkVal,paste0(pT,nAm,"-rkValue.csv"), quote=F, row.names=F)
-
-##### ex: simulation percentage match on data ##### (from SimDataPlot.r)
-dRec[,-1] = dRec[,-1]/dMaxSim
-write.csv(dRec,paste0(pT,nAm,"-tsMatch.csv"), quote=F, row.names=F)
 
 ##### ex: Time-series plot #####
 #text(min(t0[,1])+diff(range(t0[,1]))*.15,max(t0[,-1]*.95),paste("Number of simulation(s) plotted:",i9, "set(s)"), cex=1.2)
