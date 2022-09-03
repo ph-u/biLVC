@@ -32,7 +32,7 @@ for(i in 1:as.numeric(argv[4])){
 }
 dMaxSim = nrow(rP[[1]])*as.numeric(argv[4]) # ref max simulation
 n=colnames(t0)[-1] # list of categories name
-if(any(t0[,-1]>30)){yLab="Presence in pwCF [%]"}else{yLab="log_e(y+1) [CFU/mL]"} # y-axis label
+if(any(t0[,-1]>42)){yLab="Presence in pwCF [%]"}else{yLab="log_e(y+1) [CFU/mL]"} # y-axis label
 oDe = ifelse(tYpe=="LVC","c","g") # equation type
 x0 = rep(0,ncol(t0)-1) # initiate population vector
 for(i in 2:ncol(t0)){x0[i-1] = median(t0[which(t0[,1]==min(t0[,1])),i])} # set populations (20220411)
@@ -70,7 +70,7 @@ for(i in 1:length(tUq)){
         for(j in 2:ncol(t0)){
                 d0 = range(d[,j])
                 dMin[i,j] = max(0, d0[1]-ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)*1.5)) # boxplot outlier definition
-                dMax[i,j] = min(100, d0[1]+ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)*1.5))
+                dMax[i,j] = min(100, d0[2]+ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)*1.5))
 }}
 
 ##### plot legend format ##### https://stackoverflow.com/questions/39552682/base-r-horizontal-legend-with-multiple-rows
@@ -104,7 +104,8 @@ for(i1 in 1:length(rP)){
 	for(i in 1:nrow(rP[[i1]])){ tK = 0
 		a0 = solveLV(x0, as.numeric(rP[[i1]][i,]), range(t0[,1]), oDe)
 		a1 = (dMin[,-1]<=a0[which(a0[,1] %in% dMin[,1]),-1]) & (a0[which(a0[,1] %in% dMax[,1]),-1]<=dMax[,-1]); a1[is.na(a1)] = 0 # Simulation-data match count (20220822)
-		if(all(colSums(a1)==nrow(a1))){tK = 1
+## if CFU, simulation-data match threshold = half
+		if(all(colSums(a1)>=(nrow(a1)*ifelse(any(t0[,-1]>42),1,.5)))){tK = 1
 			if(nrow(a1)>2){ for(i0 in 1:(nrow(a1)-1)){
 				if(any(colSums(a1[i0:(i0+1),-1])<2)){tK = 0;break}
 			}}}
