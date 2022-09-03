@@ -105,9 +105,8 @@ for(i1 in 1:length(rP)){
 	for(i in 1:nrow(rP[[i1]])){ tK = 0
 		a0 = solveLV(x0, as.numeric(rP[[i1]][i,]), range(t0[,1]), oDe)
 		a1 = (dMin[,-1]<=a0[which(a0[,1] %in% dMin[,1]),-1]) & (a0[which(a0[,1] %in% dMax[,1]),-1]<=dMax[,-1]); a1[is.na(a1)] = 0 # Simulation-data match count (20220822)
-## if CFU, simulation-data match threshold = half
-		if(all(colSums(a1)>=(nrow(a1)*ifelse(any(t0[,-1]>percCFU),1,.5)))){tK = 1
-			if(nrow(a1)>2 & any(t0[,-1]>percCFU)){ for(i0 in 1:(nrow(a1)-1)){
+		if(all(colSums(a1)==nrow(a1))){tK = 1
+			if(nrow(a1)>2){ for(i0 in 1:(nrow(a1)-1)){
 				if(any(colSums(a1[i0:(i0+1),-1])<2)){tK = 0;break}
 			}}}
 		if(tK>0){
