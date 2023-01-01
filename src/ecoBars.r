@@ -86,7 +86,7 @@ for(i in 1:length(f0)){z = 0; cat(i,"(",date(),"),\n")
                 ecoPlot = ecoTS[[i0]][,-1]
                 ecoPlot[nrow(ecoPlot)+c(1:2),] = 0
                 ecoPlot = as.matrix(t(ecoPlot[c(nrow(ecoPlot)-1:0,1:(nrow(ecoPlot)-2)),]))
-                colnames(ecoPlot) = paste0(yR,"\n(",sFreq[,which(colnames(sFreq)==f0[i])],")\n(",apply(sFreq[,-1],1,sum),")")
+                colnames(ecoPlot) = paste0(sFreq[,1],"\n(",sFreq[,which(colnames(sFreq)==f0[i])],")\n(",apply(sFreq[,-1],1,sum),")")
 
 ### export
                 pdf(paste0(ptOT,pFx,"_",f0[i],"_",sPair[i0],".pdf"), width=14, height=11)
