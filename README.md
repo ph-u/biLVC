@@ -21,7 +21,7 @@ Ecological analysis from time-series poly-category population size data to pairw
 0. `bash sortEco.sh [path/2/data] >> ../sortEco.log`
 	- pair cluster out-message with cluster job number
 	- group parameter combinations into pairwise ecological relationships
-0. ```for i in \`[path/2/\*-rec.txt]\`;do echo -e "${i}"; bash SimDataPlot.sh ${i};done```
+0. ```for i in `[path/2/\*-rec.txt]`;do echo -e "${i}"; bash SimDataPlot.sh ${i};done```
 	- optional step
 	- plot simulations on top of time-series data
 	- calculate proportion of simulations matching data (+/- 10% tolerance for single data point time-series, 50% data range for data with replicates)
