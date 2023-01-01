@@ -1,10 +1,10 @@
-% BaMGS: *B*ayesian Inference *a*daptive *M*arkov Chain Monte Carlo using the *g*eneralized Lotka-Volterra equation and *s*tatistics framework
+# BaMGS: *B*ayesian Inference *a*daptive *M*arkov Chain Monte Carlo using the *g*eneralized Lotka-Volterra equation and *s*tatistics framework
 
-# Overview
+## Overview
 
 Ecological analysis from time-series poly-category population size data to pairwise ecological reltionship distributions graphs.  Statistics can be performed on intermediate files.
 
-# Framework stepwise commands
+## Framework stepwise commands
 
 1. Rscript cutTime.r [basename] [time...]
 	- optional step
