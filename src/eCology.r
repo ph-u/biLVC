@@ -70,8 +70,8 @@ for(i in 1:length(tUq)){
         d = t0[which(t0[,1]==tUq[i]),]
         for(j in 2:ncol(t0)){
                 d0 = range(d[,j])
-                dMin[i,j] = max(0, d0[1]-ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)*1.5)) # boxplot outlier definition
-                dMax[i,j] = min(100, d0[2]+ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)*1.5))
+                dMin[i,j] = max(0, d0[1]-ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)))
+                dMax[i,j] = min(100, d0[2]+ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)))
 }}
 
 ##### plot legend format ##### https://stackoverflow.com/questions/39552682/base-r-horizontal-legend-with-multiple-rows
