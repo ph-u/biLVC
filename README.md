@@ -4,6 +4,11 @@
 
 Ecological analysis from time-series poly-category population size data to pairwise ecological reltionship distributions graphs.  Statistics can be performed on intermediate files.
 
+- https://doi.org/10.3389/fmicb.2023.1178131
+- https://github.com/ph-u/biLVC
+- https://github.com/ph-u/UKCFRegDataSorting
+- https://github.com/ph-u/UKCFRegDNase
+
 ## Framework stepwise commands
 
 1. `Rscript cutTime.r [basename] [time...]`
