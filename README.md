@@ -1,5 +1,7 @@
 # BaMGS: *B*ayesian Inference *a*daptive *M*arkov Chain Monte Carlo using the *g*eneralized Lotka-Volterra equation and *s*tatistics framework
 
+[![DOI](https://zenodo.org/badge/450426957.svg)](https://zenodo.org/badge/latestdoi/450426957)
+
 ## Overview
 
 Ecological analysis from time-series poly-category population size data to pairwise ecological reltionship distributions graphs.  Statistics can be performed on intermediate files.
