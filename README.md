@@ -14,10 +14,15 @@ Ecological analysis from time-series poly-category population size data to pairw
 ## Updates
 
 1.0.1 - Bugs fixed
+
         > Filnames with "p_" string now segregated with prefix "p_"; prefix "p_" is for skipping respective data from processing)
+
         > R 4.3.1 adaptation on dataframe handling (eCology.r)
+
         > Fix scenario when no simulations matching data (eCology.r)
+
       - Modified CPU cluster partition (skylake retired in late Aug-2023, new nodes added into icelake in the CSD3 cluster)
+
 1.0.0 Initial release (https://doi.org/10.3389/fmicb.2023.1178131)
 
 ## Framework stepwise commands
