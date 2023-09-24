@@ -14,7 +14,7 @@
 #SBATCH --time=12:00:00
 #SBATCH --mail-type=NONE
 #SBATCH --requeue
-#SBATCH -p skylake-himem
+#SBATCH -p icelake-himem
 
 argv=(commandArgs(T))
 library(FME) # FME(1.3.6.2), deSolve(1.30), rootSolve(1.8.2.3), coda(0.19.4)

@@ -14,7 +14,7 @@
 #SBATCH --time=12:00:00
 #SBATCH --mail-type=NONE
 #SBATCH --requeue
-#SBATCH -p skylake-himem
+#SBATCH -p icelake-himem
 
 argv=(commandArgs(T))
 library(FME)

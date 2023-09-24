@@ -14,7 +14,7 @@
 #SBATCH --time=00:10:00
 #SBATCH --mail-type=NONE
 #SBATCH --requeue
-#SBATCH -p skylake-himem
+#SBATCH -p icelake-himem
 
 ##### env #####
 argv=(commandArgs(T))
@@ -159,7 +159,7 @@ if(tYpe=="LVC"){
 
 ##### category pairwise combinations #####
 catComb = data.frame(c1=rep(n,each=length(n)),c2=n,c3=NA, stringsAsFactors=F)
-for(i in 1:nrow(catComb)){catComb$c3[i] = paste(catComb[i,-3][order(catComb[i,-3])],collapse=".")}
+for(i in 1:nrow(catComb)){catComb$c3[i] = paste(catComb[i,-3][order(as.character(catComb[i,-3]))],collapse=".")}
 catComb = catComb[!duplicated(catComb$c3),-3]
 if(tYpe=="LVC"){catComb = catComb[which(catComb$c1!=catComb$c2),]}
 #catComb = as.data.frame(matrix(NA,nr=choose(length(n),2)+ifelse(tYpe=="LVC",0,length(n)), nc=2))
@@ -180,6 +180,7 @@ eCo$c1_is = rep(tY,nrow(eCo)/length(tY))
 for(i in 1:2){eCo[,i] = rep(rep(catComb[,i],each=length(tY)),length(rEp))}
 
 ##### map interactions #####
+if(nrow(paraBin)>0){
 for(i in 1:length(rEp)){ #for(i in 1:length(rP)){
 	a0 = paraBin[which(paraBin$replicate==rEp[i]),-c(1,1+rK)]
 	eCo$fit_sim[which(eCo$replicate==rEp[i])] = nrow(a0) #nrow(rP[[i]])
@@ -191,8 +192,8 @@ for(i in 1:length(rEp)){ #for(i in 1:length(rP)){
 }
 		}
 	}}
-};rm(i)
-eCo$ratio_in_rep = eCo$count/eCo$fit_sim # relationship ratio in the top 100 best-fit after double biological simulation-data reality check
+};rm(i)}
+eCo$ratio_in_rep = eCo$count/max(1,eCo$fit_sim) # relationship ratio in the top 100 best-fit after double biological simulation-data reality check
 write.csv(eCo,paste0(pT,nAm,"-eco.csv"), quote=F, row.names=F)
 
 ##### Kruskal test + posthoc Nemenyi (single-step p-adj) #####

@@ -18,7 +18,7 @@ echo -e "BImcmc-LV - (`date`)"
 
 ##### analysis #####
 cd `echo -e "${p1}/${p2}"|sed -e "s/\.$//"`
-for rAw in `ls ../raw/*.csv | grep -v "p_" | rev | cut -f 2 -d "." | cut -f 1 -d "/" | rev`;do # time-series basename
+for rAw in `ls ../raw/*.csv | grep -v "^p_" | rev | cut -f 2 -d "." | cut -f 1 -d "/" | rev`;do # time-series basename
 ## basename id: LVC / gLV
 	if [[ `echo ${rAw} | rev | cut -f 1 -d "_" | rev` == "LVC" ]];then
 		tP="c";tP0="LVC"
