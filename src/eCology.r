@@ -7,31 +7,24 @@
 # arg: 4
 # date: 20220508 (supersede interactionTypes.r), 20220820 (CSD3 adaptation)
 
-#SBATCH -J ecolAna
-#SBATCH -A WELCH-SL3-CPU
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --time=00:10:00
-#SBATCH --mail-type=NONE
-#SBATCH --requeue
-#SBATCH -p icelake-himem
-
 ##### env #####
 argv=(commandArgs(T))
+kk0 = read.csv("../parIN.csv", header = F)
+kk1 = as.numeric(argv[1])
 source("src.r")
 library(deSolve)
 percCFU = 42; # population threshold to distinguish between CFU and % type data
 #library(PMCMRplus) # v1.9.3
 #source("fdrBH.r")
-pT = argv[1]; nAm = argv[2]; tYpe=argv[3]; pOut = gsub("data","result",pT) # path links
+pT = kk0[kk1,1]; nAm = kk0[kk1,2]; tYpe=kk0[kk1,3]; pOut = gsub("data","result",pT) # path links
 t0 = read.csv(paste0(pT,nAm,"-log.csv"), header=T) # processed time-series data
 pR = read.csv(paste0(pT,nAm,"-pri.csv"), header=T) # prior list
 sD = read.csv(paste0(pT,nAm,"-seed.csv"), header=T) # seed list
-rP = rK = vector(mode="list", length=as.numeric(argv[4])) # bin for simulated coefficients
-for(i in 1:as.numeric(argv[4])){
+rP = rK = vector(mode="list", length=kk0[kk1,4]) # bin for simulated coefficients
+for(i in 1:kk0[kk1,4]){
 	rP[[i]] = read.csv(paste0(pT,nAm,"-",i,"-sam.csv"), header=T)
 }
-dMaxSim = nrow(rP[[1]])*as.numeric(argv[4]) # ref max simulation
+dMaxSim = nrow(rP[[1]])*kk0[kk1,4] # ref max simulation
 n=colnames(t0)[-1] # list of categories name
 if(any(t0[,-1]>percCFU)){yLab="Presence in pwCF [%]"}else{yLab="log_e(y+1) [CFU/mL]"} # y-axis label
 oDe = ifelse(tYpe=="LVC","c","g") # equation type

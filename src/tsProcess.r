@@ -7,20 +7,13 @@
 # arg: 3/4
 # date: 20220508 (segregate from bayesInfer.r)
 
-#SBATCH -J tsFIT
-#SBATCH -A WELCH-SL3-CPU
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --time=12:00:00
-#SBATCH --mail-type=NONE
-#SBATCH --requeue
-#SBATCH -p icelake-himem
-
 argv=(commandArgs(T))
+kk0 = read.csv("../parIN.csv", header = F)
+kk1 = as.numeric(argv[1])
 library(FME)
-pT=paste0(ifelse(version$os=="linux-gnu",paste0(argv[4],"/"),""),"../")
+pT=paste0(ifelse(version$os=="linux-gnu",paste0(kk0[kk1,4],"/"),""),"../")
 source(paste0(pT,"src/src.r"))
-nM=argv[1]; tP=argv[2]
+nM=kk0[kk1,1]; tP=kk0[kk1,2]
 sT=read.csv(paste0(pT,"raw/",nM,".csv"), header=T)
 
 ##### transformation ##### 20220101, 20220331 (+ % data type)
@@ -54,8 +47,8 @@ mcFIT = modFit(oBj,rEc[,3], sT, tP, bestMet(rEc[,3], sT, tP), method="Nelder-Mea
 rEc[,"initial"] = mcFIT$par
 rEc[,"min"] = ifelse(rEc[,"min"]>=mcFIT$par, mcFIT$par-abs(rEc[,"min"]), rEc[,"min"])
 rEc[,"max"] = ifelse(rEc[,"max"]<=mcFIT$par, mcFIT$par+abs(rEc[,"max"]), rEc[,"max"])
-write.csv(rEc, paste0(pT,"data/",argv[1],"-pri.csv"), quote=F, row.names=F)
+write.csv(rEc, paste0(pT,"data/",nM,"-pri.csv"), quote=F, row.names=F)
 
 ##### set seeds ##### 20220509
-sEed = data.frame("replicate"=1:as.numeric(argv[3]),"seed"=ceiling(runif(as.numeric(argv[3]))*10^9))
-write.csv(sEed,paste0(pT,"data/",argv[1],"-seed.csv"), quote=F, row.names=F)
+sEed = data.frame("replicate"=1:kk0[kk1,3],"seed"=ceiling(runif(kk0[kk1,3])*10^9))
+write.csv(sEed,paste0(pT,"data/",nM,"-seed.csv"), quote=F, row.names=F)
