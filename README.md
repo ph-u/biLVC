@@ -1,4 +1,4 @@
-# Interactics
+# EcoAtom
 
 [![DOI](https://zenodo.org/badge/450426957.svg)](https://zenodo.org/badge/latestdoi/450426957)
 
@@ -9,7 +9,7 @@
 
 ## Overview
 
-Analytics for pairwise interactions of taxa categories (interactome) using time-series abundance records. Pipeline is built based on Bayesian Inference adaptive Markov Chain Monte Carlo with generalized Lotka-Volterra equation.
+Analytics for pairwise ecological interactions of taxa categories (interactome) using time-series abundance records. Pipeline is built based on Bayesian Inference adaptive Markov Chain Monte Carlo with generalized Lotka-Volterra equation.
 
 ## Requirements
 
@@ -21,7 +21,7 @@ Analytics for pairwise interactions of taxa categories (interactome) using time-
 
 ## Updates
 
-### Interactics
+### EcoAtom
 
 `2.0.0` - SLURM system optimization  
 	> Backward compatible with ver 1 (BaMGS)  
