@@ -2,7 +2,7 @@
 # author: ph-u
 # script: tsProcess.r
 # desc: time-series raw data process
-# in: Rscript tsProcess.r [basename] [competition (c) / generalized (g)] [replicates] [/full/path (optional)]
+# in: Rscript tsProcess.r [basename] [competition (c) / generalized (g)] [replicates] [/full/path (optional)] [raw ts directory name]
 # out: data/[basename]-{log,pri,seed}.csv
 # arg: 3/4
 # date: 20220508 (segregate from bayesInfer.r)
@@ -14,7 +14,7 @@ library(FME)
 pT=paste0(ifelse(version$os=="linux-gnu",paste0(kk0[kk1,4],"/"),""),"../")
 source(paste0(pT,"src/src.r"))
 nM=kk0[kk1,1]; tP=kk0[kk1,2]
-sT=read.csv(paste0(pT,"raw/",nM,".csv"), header=T)
+sT=read.csv(paste0(pT,kk0[kk1,5],"/",nM,".csv"), header=T)
 
 ##### transformation ##### 20220101, 20220331 (+ % data type)
 if(all(sT[,-1]<=1)){sT[,-1] = sT[,-1] * 100}else{sT[,-1] = log(sT[,-1]+1)}

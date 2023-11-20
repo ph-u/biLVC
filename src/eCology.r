@@ -63,8 +63,8 @@ for(i in 1:length(tUq)){
         d = t0[which(t0[,1]==tUq[i]),]
         for(j in 2:ncol(t0)){
                 d0 = range(d[,j])
-                dMin[i,j] = max(0, d0[1]-ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)))
-                dMax[i,j] = min(100, d0[2]+ifelse(length(t0[,1])==length(unique(t0[,1])),acRatio*100,diff(d0)))
+                dMin[i,j] = max(0, d0[1]-ifelse(length(t0[,1])==length(unique(t0[,1])),d0[1]*acRatio,diff(d0)))
+                dMax[i,j] = min(100, d0[2]+ifelse(length(t0[,1])==length(unique(t0[,1])),d0[2]*acRatio,diff(d0)))
 }}
 
 ##### plot legend format ##### https://stackoverflow.com/questions/39552682/base-r-horizontal-legend-with-multiple-rows
@@ -88,7 +88,7 @@ for(i in c(1:2)){
 		xlab=paste0(gsub("_"," (",colnames(t0)[1]),ifelse(length(grep("_",colnames(t0)[1]))>0,")","")),
 		ylab=yLab, cex.axis=2, cex.lab=2)
 	if(i==1){
-		legend("bottom", inset=c(0,-.75), legend = colnames(t0)[-1][legMx], title="Taxonomic Category", border=NA, xpd=T, cex=2, ncol=nDim[2], pch = c((1:(ncol(t0)-1))%%25,NA), lty=c((1:(ncol(t0)-1))%%5+1,NA), lwd=2, col = cBp)
+		legend("bottom", inset=c(0,-.75), legend = colnames(t0)[-1][legMx], title="Taxonomic Category", border=NA, xpd=T, cex=2, ncol=nDim[2], pch = c((1:(ncol(t0)-1))%%25,rep(NA,sum(is.na(legMx)))), lty=c((1:(ncol(t0)-1))%%5+1,rep(NA,sum(is.na(legMx)))), lwd=2, col = cBp)
 		invisible(dev.off())}
 #legend("topright", inset=c(-.19,0), legend = colnames(t0)[-1], pch = (1:(ncol(t0)-1))%%25, lty=(1:(ncol(t0)-1))%%5+1, lwd=2, col = cBp)
 }
@@ -111,7 +111,7 @@ for(i1 in 1:length(rP)){
 #	rK[[i1]] = rP[[i1]][,which(pR[,2] == "r" | pR[,2] == "k")]
 #	rP[[i1]] = rP[[i1]][,which(pR[,2] != "r" & pR[,2] != "k")]
 };rm(i,i1)
-legend("bottom", inset=c(0,-.75), legend = colnames(t0)[-1][legMx], title=paste("Taxonomic Category -",nrow(paraBin),"simulation set(s)"), border=NA, xpd=T, cex=2, ncol=nDim[2], pch = c((1:(ncol(t0)-1))%%25,NA), lty=c((1:(ncol(t0)-1))%%5+1,NA), lwd=2, col = cBp)
+legend("bottom", inset=c(0,-.75), legend = colnames(t0)[-1][legMx], title=paste("Taxonomic Category -",nrow(paraBin),"simulation set(s)"), border=NA, xpd=T, cex=2, ncol=nDim[2], pch = c((1:(ncol(t0)-1))%%25,rep(NA,sum(is.na(legMx)))), lty=c((1:(ncol(t0)-1))%%5+1,rep(NA,sum(is.na(legMx)))), lwd=2, col = cBp)
 invisible(dev.off())
 
 write.csv(paraBin,paste0(pT,nAm,"-filter.csv"), quote=F, row.names=F)

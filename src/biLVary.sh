@@ -23,7 +23,7 @@ echo -e "BImcmc-LV - (`date`)"
 for rAw in `ls ../${ptIN}/*.csv | grep -v "^p_" | rev | cut -f 2 -d "." | cut -f 1 -d "/" | rev`;do #time-series basename
     [[ `echo ${rAw} | rev | cut -f 1 -d "_" | rev` == "LVC" ]]&&tP="c"||tP="g"
     if [[ ${sT} -eq 1 ]];then
-        echo -e "${rAw},${tP},${rP},${p1}" >> ../parIN.csv
+        echo -e "${rAw},${tP},${rP},${p1},${ptIN}" >> ../parIN.csv
     elif [[ ${sT} -eq 2 ]];then
         for rEp in `seq 1 ${rP}`;do echo -e "${rAw},${tP},${mX},${rEp},${p1}" >> ../parIN.csv;done
     else
