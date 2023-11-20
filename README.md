@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/450426957.svg)](https://zenodo.org/badge/latestdoi/450426957)
 
-- [(https://doi.org/10.3389/fmicb.2023.1178131](https://doi.org/10.3389/fmicb.2023.1178131)
+- [https://doi.org/10.3389/fmicb.2023.1178131](https://doi.org/10.3389/fmicb.2023.1178131)
 - [https://github.com/ph-u/biLVC](https://github.com/ph-u/biLVC)
 - [https://github.com/ph-u/UKCFRegDataSorting](https://github.com/ph-u/UKCFRegDataSorting)
 - [https://github.com/ph-u/UKCFRegDNase](https://github.com/ph-u/UKCFRegDNase)
@@ -24,16 +24,16 @@ Analytics for pairwise ecological interactions of taxa categories (interactome) 
 ### EcoAtom
 
 `2.0.0` - SLURM system optimization  
-	> Backward compatible with ver 1 (BaMGS)  
-	> array jobs submission
+        > Backward incompatible with ver 1 (BaMGS)  
+        > array jobs submission
 
 ### BaMGS
 
 `1.0.1` - Bugs fixed  
-	> Filnames with "p_" string now segregated with prefix "p_"; prefix "p_" is for skipping respective data from processing)  
-	> R 4.3.1 adaptation on dataframe handling (eCology.r)  
-	> Fix scenario when no simulations matching data (eCology.r)  
-	- Modified CPU cluster partition (skylake retired in late Aug-2023, new nodes added into icelake in the CSD3 cluster)  
+            > Filnames with "p_" string now segregated with prefix "p_"; prefix "p_" is for skipping respective data from processing)  
+            > R 4.3.1 adaptation on dataframe handling (eCology.r)  
+            > Fix scenario when no simulations matching data (eCology.r)  
+        - Modified CPU cluster partition (skylake retired in late Aug-2023, new nodes added into icelake in the CSD3 cluster)  
 `1.0.0` Initial release ([https://doi.org/10.3389/fmicb.2023.1178131](https://doi.org/10.3389/fmicb.2023.1178131))
 
 ## Usage
